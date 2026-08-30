@@ -1051,11 +1051,9 @@ function Dashboard() {
 
                       <button
                         type="button"
-                        onClick={() =>
-                          navigate(
-                            `/enroll/${course.id}`
-                          )
-                        }
+                       onClick={() =>
+  navigate(`/enrollment/${course.id}`)
+}
                         className="flex items-center justify-center gap-2 rounded-xl bg-[#061b32] px-3 py-3 text-sm font-semibold text-white transition hover:bg-[#087ea4]"
                       >
                         <ShoppingCart size={16} />
