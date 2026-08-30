@@ -12,6 +12,8 @@ import Results from "./pages/Results";
 import Progress from "./pages/Progress";
 import Support from "./pages/Support";
 import SupportRequests from "./pages/SupportRequests";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Terms from "./pages/Terms";
 
 export default function App() {
   return (
@@ -117,7 +119,14 @@ export default function App() {
         path="/support-requests"
         element={<SupportRequests />}
       />
-
+<Route
+  path="/privacy-policy"
+  element={<PrivacyPolicy />}
+/>
+<Route
+  path="/terms"
+  element={<Terms />}
+/>
       {/* =========================
           Unknown Route
       ========================== */}
