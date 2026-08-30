@@ -9,25 +9,91 @@ import {
   Save,
   User,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+type NavPathUser = {
+  name: string;
+  email: string;
+  isLoggedIn: boolean;
+  phone?: string;
+};
 
 function Profile() {
   const navigate = useNavigate();
 
-  const [name, setName] = useState("Aravind");
-  const [email, setEmail] = useState("student@navpathacademy.com");
-  const [phone, setPhone] = useState("+91 98765 43210");
-
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [saved, setSaved] = useState(false);
 
-  const handleSave = () => {
-    setSaved(true);
+  // Load the currently logged-in user
+  useEffect(() => {
+    const storedUser = localStorage.getItem("navpath-user");
 
-    setTimeout(() => {
-      setSaved(false);
-    }, 2500);
+    if (!storedUser) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const user: NavPathUser = JSON.parse(storedUser);
+
+      if (!user.isLoggedIn) {
+        navigate("/login");
+        return;
+      }
+
+      setName(user.name || "");
+      setEmail(user.email || "");
+      setPhone(user.phone || "");
+    } catch {
+      localStorage.removeItem("navpath-user");
+      navigate("/login");
+    }
+  }, [navigate]);
+
+  const handleSave = () => {
+    const storedUser = localStorage.getItem("navpath-user");
+
+    if (!storedUser) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const existingUser: NavPathUser = JSON.parse(storedUser);
+
+      const updatedUser: NavPathUser = {
+        ...existingUser,
+        name: name.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        isLoggedIn: true,
+      };
+
+      localStorage.setItem(
+        "navpath-user",
+        JSON.stringify(updatedUser),
+      );
+
+      setName(updatedUser.name);
+      setEmail(updatedUser.email);
+      setPhone(updatedUser.phone || "");
+
+      setSaved(true);
+
+      setTimeout(() => {
+        setSaved(false);
+      }, 2500);
+    } catch {
+      navigate("/login");
+    }
   };
+
+  const avatarLetter = name.trim()
+    ? name.trim().charAt(0).toUpperCase()
+    : "U";
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -44,6 +110,7 @@ function Profile() {
 
             <div className="text-left">
               <p className="font-bold">NAVPATH</p>
+
               <p className="text-[10px] uppercase tracking-[0.25em] text-slate-400">
                 Academy
               </p>
@@ -86,10 +153,12 @@ function Profile() {
             <div className="-mt-12 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
               <div className="flex items-end gap-4">
                 <div className="relative flex h-24 w-24 items-center justify-center rounded-3xl border-4 border-white bg-blue-100 text-3xl font-bold text-blue-600 shadow-lg">
-                  A
+                  {avatarLetter}
 
                   <button
-                    onClick={() => alert("Profile photo upload coming soon")}
+                    onClick={() =>
+                      alert("Profile photo upload coming soon")
+                    }
                     className="absolute -bottom-2 -right-2 flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-blue-600 text-white shadow-md hover:bg-blue-700"
                   >
                     <Camera size={16} />
@@ -98,7 +167,7 @@ function Profile() {
 
                 <div className="pb-1">
                   <h2 className="text-xl font-bold">
-                    {name}
+                    {name || "Student"}
                   </h2>
 
                   <p className="text-sm text-slate-500">
@@ -137,6 +206,7 @@ function Profile() {
                       onChange={(event) =>
                         setName(event.target.value)
                       }
+                      placeholder="Your full name"
                       className="w-full rounded-xl border border-slate-200 bg-white py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                     />
                   </div>
@@ -160,6 +230,7 @@ function Profile() {
                         setEmail(event.target.value)
                       }
                       type="email"
+                      placeholder="you@example.com"
                       className="w-full rounded-xl border border-slate-200 bg-white py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                     />
                   </div>
@@ -182,12 +253,13 @@ function Profile() {
                       onChange={(event) =>
                         setPhone(event.target.value)
                       }
+                      placeholder="+91 XXXXX XXXXX"
                       className="w-full rounded-xl border border-slate-200 bg-white py-3.5 pl-11 pr-4 text-sm outline-none transition focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10"
                     />
                   </div>
                 </div>
 
-                {/* COURSE */}
+                {/* PRIMARY GOAL */}
                 <div>
                   <label className="mb-2 block text-sm font-semibold text-slate-700">
                     Primary Goal
