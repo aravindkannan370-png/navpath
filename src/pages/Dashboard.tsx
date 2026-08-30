@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-
 import {
   Bell,
   BookOpen,
@@ -11,11 +10,11 @@ import {
   FileText,
   ArrowRight,
   Search,
-  Headphones,
-  MessageSquare,
+  Compass,
+  Anchor,
+  Waves,
+  Ship,
 } from "lucide-react";
-
-import { getCourseById } from "../data/courses";
 
 type TestResult = {
   title: string;
@@ -26,30 +25,15 @@ type TestResult = {
   date: string;
 };
 
-type NavPathUser = {
-  name?: string;
-  email?: string;
-  isLoggedIn?: boolean;
-};
-
 function getCompletedLessons(): string[] {
   try {
-    const saved = localStorage.getItem(
-      "navpath_completed_lessons"
-    );
+    const saved = localStorage.getItem("navpath_completed_lessons");
 
-    if (!saved) {
-      return [];
-    }
+    if (!saved) return [];
 
     const parsed = JSON.parse(saved);
 
-    return Array.isArray(parsed)
-      ? parsed.filter(
-          (item): item is string =>
-            typeof item === "string"
-        )
-      : [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
@@ -57,83 +41,43 @@ function getCompletedLessons(): string[] {
 
 function getTestHistory(): TestResult[] {
   try {
-    const saved =
-      localStorage.getItem("testHistory");
+    const saved = localStorage.getItem("testHistory");
 
-    if (!saved) {
-      return [];
-    }
+    if (!saved) return [];
 
     const parsed = JSON.parse(saved);
 
-    return Array.isArray(parsed)
-      ? parsed
-      : [];
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
 }
 
-function getUser(): NavPathUser {
+function getUserName() {
   try {
-    const saved =
-      localStorage.getItem("navpath-user");
+    const saved = localStorage.getItem("navpath-user");
 
-    if (!saved) {
-      return {};
-    }
+    if (!saved) return "Student";
 
-    const parsed = JSON.parse(saved);
+    const user = JSON.parse(saved);
 
-    if (
-      !parsed ||
-      typeof parsed !== "object"
-    ) {
-      return {};
-    }
-
-    return parsed;
+    return user?.name || "Student";
   } catch {
-    return {};
+    return "Student";
   }
 }
 
-function getGreeting(): string {
-  const hour = new Date().getHours();
-
-  if (hour < 12) {
-    return "Good morning";
-  }
-
-  if (hour < 17) {
-    return "Good afternoon";
-  }
-
-  return "Good evening";
-}
-
-export default function Dashboard() {
+function Dashboard() {
   const navigate = useNavigate();
 
-  const [completedLessons, setCompletedLessons] =
-    useState<string[]>([]);
-
-  const [testHistory, setTestHistory] =
-    useState<TestResult[]>([]);
-
-  const [user, setUser] =
-    useState<NavPathUser>({});
+  const [completedLessons, setCompletedLessons] = useState<string[]>([]);
+  const [testHistory, setTestHistory] = useState<TestResult[]>([]);
+  const [userName, setUserName] = useState("Student");
 
   const loadProgress = () => {
-    setCompletedLessons(
-      getCompletedLessons()
-    );
-
-    setTestHistory(
-      getTestHistory()
-    );
-
-    setUser(getUser());
+    setCompletedLessons(getCompletedLessons());
+    setTestHistory(getTestHistory());
+    setUserName(getUserName());
   };
 
   useEffect(() => {
@@ -143,481 +87,356 @@ export default function Dashboard() {
       loadProgress();
     };
 
-    const handleFocus = () => {
-      loadProgress();
-    };
-
-    const handleVisibility = () => {
-      if (
-        document.visibilityState ===
-        "visible"
-      ) {
-        loadProgress();
-      }
-    };
-
-    window.addEventListener(
-      "storage",
-      handleStorage
-    );
-
-    window.addEventListener(
-      "focus",
-      handleFocus
-    );
-
-    document.addEventListener(
-      "visibilitychange",
-      handleVisibility
-    );
+    window.addEventListener("storage", handleStorage);
 
     return () => {
-      window.removeEventListener(
-        "storage",
-        handleStorage
-      );
-
-      window.removeEventListener(
-        "focus",
-        handleFocus
-      );
-
-      document.removeEventListener(
-        "visibilitychange",
-        handleVisibility
-      );
+      window.removeEventListener("storage", handleStorage);
     };
   }, []);
 
-  /* ===================================================
-     USER
-  =================================================== */
+  /*
+   * ============================
+   * REAL PROGRESS DATA
+   * ============================
+   */
 
-  const userName =
-    user.name?.trim() || "Student";
+  const totalLessons: number = 5;
 
-  const userInitial =
-    userName.charAt(0).toUpperCase() || "S";
+const lessonsCompleted = completedLessons.length;
 
-  const greeting = getGreeting();
-
-  /* ===================================================
-     REAL COURSE DATA
-  =================================================== */
-
-  const imuCourse =
-    getCourseById("imu-cet");
-
-  const imuLessons =
-    imuCourse?.lessons || [];
-
-  const totalLessons: number =
-    imuLessons.length;
-
-  const lessonsCompleted =
-    imuLessons.filter((lesson) =>
-      completedLessons.includes(
-        lesson.id
-      )
-    ).length;
-
-  const courseProgress =
-    totalLessons > 0
-      ? Math.min(
-          100,
-          Math.round(
-            (lessonsCompleted /
-              totalLessons) *
-              100
-          )
-        )
-      : 0;
-
-  const remainingLessons =
-    Math.max(
-      0,
-      totalLessons - lessonsCompleted
-    );
-
-  /* ===================================================
-     NEXT LESSON
-  =================================================== */
-
-  const nextLesson =
-    imuLessons.find(
-      (lesson) =>
-        !completedLessons.includes(
-          lesson.id
-        )
-    );
-
-  /* ===================================================
-     TEST STATISTICS
-  =================================================== */
-
-  const testsCompleted =
-    testHistory.length;
+const courseProgress =
+  totalLessons === 0
+    ? 0
+    : Math.min(
+        100,
+        Math.round((lessonsCompleted / totalLessons) * 100)
+      );
+  const testsCompleted = testHistory.length;
 
   const averageScore =
     testsCompleted === 0
       ? 0
       : Math.round(
           testHistory.reduce(
-            (total, test) =>
-              total +
-              Number(test.score || 0),
+            (total, test) => total + test.score,
             0
           ) / testsCompleted
         );
 
-  /* ===================================================
-     LEARNING TIME
-  =================================================== */
+  const learningHours = Math.floor(
+    (lessonsCompleted * 25) / 60
+  );
 
   const learningMinutes =
-    imuLessons
-      .filter((lesson) =>
-        completedLessons.includes(
-          lesson.id
-        )
-      )
-      .reduce(
-        (total, lesson) => {
-          const match =
-            lesson.duration.match(
-              /\d+/
-            );
-
-          return (
-            total +
-            (match
-              ? Number(match[0])
-              : 0)
-          );
-        },
-        0
-      );
-
-  const learningHours =
-    Math.floor(
-      learningMinutes / 60
-    );
-
-  const remainingMinutes =
-    learningMinutes % 60;
+    (lessonsCompleted * 25) % 60;
 
   const learningTime =
     learningHours > 0
-      ? `${learningHours}h ${remainingMinutes}m`
-      : `${remainingMinutes}m`;
+      ? `${learningHours}h ${learningMinutes}m`
+      : `${learningMinutes}m`;
 
-  /* ===================================================
-     COURSES
-  =================================================== */
+  /*
+   * ============================
+   * COURSE DATA
+   * ============================
+   */
 
   const courses = [
     {
       id: "imu-cet",
-      title:
-        "IMU CET 2027 — Complete Preparation",
+      title: "Complete CET Preparation",
       category: "IMU CET",
       description:
-        "Complete preparation for Physics, Chemistry, Mathematics and English.",
-      lessons:
-        imuLessons.length,
+        "Build a strong foundation across every major subject.",
+      lessons: "150+ lessons",
+      icon: Compass,
     },
-
     {
       id: "dns",
-      title:
-        "DNS Preparation Program",
+      title: "DNS Preparation Program",
       category: "DNS",
       description:
-        "Structured preparation for DNS entrance examinations.",
-      lessons:
-        getCourseById("dns")?.lessons
-          .length || 0,
+        "Prepare for entrance exams and your maritime journey.",
+      lessons: "80+ lessons",
+      icon: Ship,
     },
-
     {
       id: "career",
-      title:
-        "Merchant Navy Career Guide",
+      title: "Sponsorship Accelerator",
       category: "CAREER",
       description:
-        "Career guidance, sponsorship information and interview preparation.",
-      lessons:
-        getCourseById("career")?.lessons
-          .length || 0,
+        "Interview preparation and career guidance.",
+      lessons: "40+ lessons",
+      icon: Anchor,
     },
   ];
 
+  const firstName =
+    userName.trim().split(" ")[0] || "Student";
+
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
+    <div className="min-h-screen bg-[#f3f7fb] text-slate-950">
 
-      {/* =================================================
+      {/* =====================================================
           HEADER
-      ================================================= */}
+      ===================================================== */}
 
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white">
-        <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6 lg:px-8">
+      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/95 shadow-sm backdrop-blur">
 
-          {/* Logo */}
+        <div className="mx-auto flex h-[76px] max-w-7xl items-center justify-between px-5 sm:px-6 lg:px-8">
+
+          {/* LOGO */}
 
           <button
-            onClick={() =>
-              navigate("/dashboard")
-            }
-            className="flex items-center gap-3"
+            onClick={() => navigate("/dashboard")}
+            className="group flex items-center gap-3"
           >
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 text-xl font-bold text-white">
-              N
+
+            {/* Compass Logo */}
+
+            <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-[#071a2f] shadow-lg shadow-blue-950/20 transition group-hover:scale-105">
+
+              <div className="absolute inset-0 bg-gradient-to-br from-[#0b3158] to-[#071a2f]" />
+
+              <Compass
+                size={25}
+                strokeWidth={1.8}
+                className="relative z-10 text-cyan-300"
+              />
+
+              <div className="absolute h-1.5 w-1.5 rounded-full bg-white" />
+
             </div>
 
             <div className="text-left">
-              <div className="text-xl font-bold tracking-tight">
+
+              <div className="text-[17px] font-extrabold tracking-[0.08em] text-[#071a2f]">
                 NAVPATH
               </div>
 
-              <div className="text-xs tracking-[0.25em] text-slate-400">
+              <div className="text-[9px] font-semibold tracking-[0.32em] text-slate-400">
                 ACADEMY
               </div>
+
             </div>
           </button>
 
-          {/* Header Actions */}
+          {/* HEADER ACTIONS */}
 
-          <div className="flex items-center gap-2">
-
-            {/* Search */}
+          <div className="flex items-center gap-2 sm:gap-4">
 
             <button
-              onClick={() =>
-                navigate("/search")
-              }
-              className="rounded-full p-2.5 text-slate-500 transition hover:bg-slate-100 hover:text-blue-600"
+              onClick={() => navigate("/search")}
+              className="rounded-xl p-2.5 text-slate-500 transition hover:bg-blue-50 hover:text-[#0b5fa5]"
               title="Search"
             >
-              <Search size={21} />
+              <Search size={20} />
             </button>
 
-            {/* Notifications */}
-
             <button
-              onClick={() =>
-                navigate("/notifications")
-              }
-              className="rounded-full p-2.5 text-slate-500 transition hover:bg-slate-100 hover:text-blue-600"
+              onClick={() => navigate("/notifications")}
+              className="relative rounded-xl p-2.5 text-slate-500 transition hover:bg-blue-50 hover:text-[#0b5fa5]"
               title="Notifications"
             >
-              <Bell size={21} />
+              <Bell size={20} />
+
+              <span className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-cyan-500 ring-2 ring-white" />
             </button>
 
-            {/* Profile */}
+            <div className="mx-1 hidden h-8 w-px bg-slate-200 sm:block" />
 
             <button
-              onClick={() =>
-                navigate("/profile")
-              }
-              className="ml-2 flex items-center gap-3 rounded-xl px-2 py-1 transition hover:bg-slate-50"
+              onClick={() => navigate("/profile")}
+              className="flex items-center gap-3 rounded-xl px-2 py-1.5 transition hover:bg-slate-50"
             >
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
-                {userInitial}
+
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#0b5fa5] to-[#071a2f] text-sm font-bold text-white shadow-md">
+                {firstName.charAt(0).toUpperCase()}
               </div>
 
               <div className="hidden text-left sm:block">
-                <p className="font-semibold">
-                  {userName}
+
+                <p className="text-sm font-bold text-slate-800">
+                  {firstName}
                 </p>
 
-                <p className="text-sm text-slate-400">
+                <p className="text-xs text-slate-400">
                   Student
                 </p>
+
               </div>
+
             </button>
+
           </div>
         </div>
       </header>
 
-      {/* =================================================
+
+      {/* =====================================================
           QUICK NAVIGATION
-      ================================================= */}
+      ===================================================== */}
 
       <div className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl overflow-x-auto px-6 lg:px-8">
 
-          <nav className="flex min-w-max items-center gap-2 py-3">
+        <div className="mx-auto max-w-7xl overflow-x-auto px-5 sm:px-6 lg:px-8">
 
-            {/* Dashboard */}
+          <nav className="flex min-w-max items-center gap-1.5 py-2.5">
 
             <button
-              onClick={() =>
-                navigate("/dashboard")
-              }
-              className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white"
+              onClick={() => navigate("/dashboard")}
+              className="rounded-lg bg-[#071a2f] px-5 py-2.5 text-sm font-semibold text-white shadow-sm"
             >
               Dashboard
             </button>
 
-            {/* Courses */}
-
             <button
-              onClick={() =>
-                navigate("/courses")
-              }
-              className="rounded-lg px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-blue-600"
+              onClick={() => navigate("/courses")}
+              className="rounded-lg px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-blue-50 hover:text-[#0b5fa5]"
             >
               Courses
             </button>
 
-            {/* My Courses */}
-
             <button
-              onClick={() =>
-                navigate("/my-courses")
-              }
-              className="rounded-lg px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-blue-600"
+              onClick={() => navigate("/my-courses")}
+              className="rounded-lg px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-blue-50 hover:text-[#0b5fa5]"
             >
               My Courses
             </button>
 
-            {/* Progress */}
-
             <button
-              onClick={() =>
-                navigate("/progress")
-              }
-              className="rounded-lg px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-blue-600"
+              onClick={() => navigate("/progress")}
+              className="rounded-lg px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-blue-50 hover:text-[#0b5fa5]"
             >
               Progress
             </button>
 
-            {/* Tests */}
-
             <button
-              onClick={() =>
-                navigate("/tests/imu-cet")
-              }
-              className="rounded-lg px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-blue-600"
+              onClick={() => navigate("/tests/imu-cet")}
+              className="rounded-lg px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-blue-50 hover:text-[#0b5fa5]"
             >
               Tests
             </button>
 
-            {/* Profile */}
-
             <button
-              onClick={() =>
-                navigate("/profile")
-              }
-              className="rounded-lg px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-blue-600"
+              onClick={() => navigate("/profile")}
+              className="rounded-lg px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-blue-50 hover:text-[#0b5fa5]"
             >
               Profile
             </button>
 
-            {/* Support */}
-
-            <button
-              onClick={() =>
-                navigate("/support")
-              }
-              className="flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-blue-600"
-            >
-              <Headphones size={16} />
-              Support
-            </button>
-
-            {/* Support Requests */}
-
-            <button
-              onClick={() =>
-                navigate(
-                  "/support-requests"
-                )
-              }
-              className="flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-blue-600"
-            >
-              <MessageSquare size={16} />
-              Support Requests
-            </button>
-
           </nav>
+
         </div>
       </div>
 
-      {/* =================================================
+
+      {/* =====================================================
           MAIN
-      ================================================= */}
+      ===================================================== */}
 
-      <main className="mx-auto max-w-7xl px-6 py-10 lg:px-8">
+      <main className="mx-auto max-w-7xl px-5 py-8 sm:px-6 lg:px-8">
 
-        {/* =================================================
+        {/* =====================================================
             WELCOME
-        ================================================= */}
+        ===================================================== */}
 
         <section className="mb-8">
 
-          <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-blue-600">
-            Student Dashboard
-          </p>
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
 
-          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-            {greeting}, {userName} 👋
-          </h1>
+            <div>
 
-          <p className="mt-3 text-lg text-slate-500">
-            Continue your preparation and
-            stay on course for your goals.
-          </p>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-100 bg-blue-50 px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.14em] text-[#0b5fa5]">
+                <Waves size={14} />
+                Student Dashboard
+              </div>
+
+              <h1 className="text-3xl font-extrabold tracking-tight text-[#071a2f] md:text-4xl">
+                Good evening, {firstName}
+                <span className="ml-2">👋</span>
+              </h1>
+
+              <p className="mt-3 max-w-2xl text-base leading-7 text-slate-500">
+                Stay focused, keep learning and move one step closer
+                to your maritime career.
+              </p>
+
+            </div>
+
+            <div className="hidden items-center gap-2 text-sm font-medium text-slate-400 md:flex">
+              <Anchor size={17} />
+              Navigate your future
+            </div>
+
+          </div>
 
         </section>
 
-        {/* =================================================
-            CONTINUE LEARNING
-        ================================================= */}
 
-        <section className="mb-9 overflow-hidden rounded-2xl bg-slate-950 p-8 text-white shadow-xl">
+        {/* =====================================================
+            MARITIME HERO / CONTINUE LEARNING
+        ===================================================== */}
 
-          <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-center">
+        <section className="relative mb-9 overflow-hidden rounded-[28px] bg-[#071a2f] shadow-2xl shadow-blue-950/20">
 
-            <div className="flex-1">
+          {/* Decorative gradients */}
 
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-sm font-semibold text-blue-300">
-                <Flame size={16} />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0b3158] via-[#071a2f] to-[#04111f]" />
+
+          <div className="absolute -right-20 -top-28 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl" />
+
+          <div className="absolute -bottom-32 left-1/3 h-72 w-72 rounded-full bg-blue-500/10 blur-3xl" />
+
+          {/* Navigation lines */}
+
+          <div className="pointer-events-none absolute right-0 top-0 h-full w-1/2 overflow-hidden opacity-20">
+
+            <div className="absolute right-[-100px] top-[-100px] h-[420px] w-[420px] rounded-full border border-cyan-300/30" />
+
+            <div className="absolute right-[-60px] top-[-60px] h-[340px] w-[340px] rounded-full border border-cyan-300/20" />
+
+            <div className="absolute right-[-20px] top-[-20px] h-[260px] w-[260px] rounded-full border border-cyan-300/20" />
+
+          </div>
+
+
+          <div className="relative z-10 flex flex-col justify-between gap-10 p-7 sm:p-9 lg:flex-row lg:items-center lg:p-10">
+
+            <div className="max-w-2xl flex-1">
+
+              <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-cyan-300/20 bg-cyan-300/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.14em] text-cyan-300">
+                <Flame size={15} />
                 Continue Learning
               </div>
 
-              <h2 className="text-2xl font-bold md:text-3xl">
-                IMU CET 2027 —
-                Complete Preparation
+              <h2 className="text-2xl font-extrabold leading-tight text-white md:text-3xl lg:text-[34px]">
+                IMU CET 2027 — Complete Preparation
               </h2>
 
-              <p className="mt-3 max-w-2xl text-slate-400">
-                Physics, Chemistry,
-                Mathematics, English and
-                aptitude preparation in one
-                structured learning path.
+              <p className="mt-4 max-w-xl text-sm leading-7 text-slate-300 sm:text-base">
+                Physics, Chemistry, Mathematics, English and aptitude
+                preparation in one structured learning path.
               </p>
-
-              {/* Progress */}
 
               <div className="mt-7 max-w-xl">
 
-                <div className="mb-2 flex items-center justify-between text-sm">
+                <div className="mb-2.5 flex items-center justify-between text-sm">
 
-                  <span className="text-slate-400">
+                  <span className="font-medium text-slate-400">
                     Course progress
                   </span>
 
-                  <span className="font-semibold">
+                  <span className="font-bold text-cyan-300">
                     {courseProgress}%
                   </span>
 
                 </div>
 
-                <div className="h-2.5 overflow-hidden rounded-full bg-slate-800">
+                <div className="h-2.5 overflow-hidden rounded-full bg-white/10">
 
                   <div
-                    className="h-full rounded-full bg-blue-500 transition-all duration-500"
+                    className="h-full rounded-full bg-gradient-to-r from-cyan-400 to-blue-500 transition-all duration-500"
                     style={{
                       width: `${courseProgress}%`,
                     }}
@@ -627,340 +446,272 @@ export default function Dashboard() {
 
               </div>
 
-              {/* Course information */}
+            </div>
 
-              <div className="mt-6 flex flex-wrap gap-6 text-sm text-slate-400">
 
-                <span className="flex items-center gap-2">
-                  <BookOpen size={17} />
+            {/* Compass */}
 
-                  {lessonsCompleted} /{" "}
-                  {totalLessons} lessons
-                </span>
+            <div className="hidden shrink-0 items-center justify-center lg:flex">
 
-                <span className="flex items-center gap-2">
-                  <Clock size={17} />
+              <div className="relative flex h-36 w-36 items-center justify-center rounded-full border border-cyan-300/20 bg-white/5">
 
-                  {learningTime} learned
-                </span>
+                <div className="absolute inset-3 rounded-full border border-white/10" />
 
-                <span className="flex items-center gap-2">
-                  <Target size={17} />
+                <Compass
+                  size={72}
+                  strokeWidth={1.2}
+                  className="text-cyan-300"
+                />
 
-                  {averageScore}% average
-                </span>
+                <div className="absolute top-4 text-[9px] font-bold tracking-widest text-slate-400">
+                  N
+                </div>
+
+                <div className="absolute bottom-4 text-[9px] font-bold tracking-widest text-slate-500">
+                  S
+                </div>
 
               </div>
 
             </div>
 
+
             {/* Continue button */}
 
             <button
-              onClick={() =>
-                navigate("/learn/imu-cet")
-              }
-              className="flex shrink-0 items-center justify-center gap-3 rounded-xl bg-white px-7 py-4 font-semibold text-slate-950 shadow-lg transition hover:bg-slate-100"
+              onClick={() => navigate("/learn/imu-cet")}
+              className="group flex shrink-0 items-center justify-center gap-3 rounded-xl bg-white px-6 py-4 font-bold text-[#071a2f] shadow-xl transition hover:-translate-y-0.5 hover:bg-cyan-50"
             >
-              <BookOpen size={20} />
+              <BookOpen size={19} />
 
               Continue Learning
 
-              <ArrowRight size={18} />
+              <ArrowRight
+                size={18}
+                className="transition-transform group-hover:translate-x-1"
+              />
             </button>
 
           </div>
+
         </section>
 
-        {/* =================================================
+
+        {/* =====================================================
             STATISTICS
-        ================================================= */}
+        ===================================================== */}
 
-        <section className="mb-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-          {/* Lessons */}
+          {/* Active Courses */}
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <div className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg">
 
-            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-              <BookOpen size={22} />
+            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0b5fa5] transition group-hover:bg-[#071a2f] group-hover:text-cyan-300">
+              <BookOpen size={21} />
             </div>
 
-            <p className="text-sm text-slate-500">
-              Lessons Completed
+            <p className="text-sm font-medium text-slate-500">
+              Active Courses
             </p>
 
-            <p className="mt-2 text-3xl font-bold">
-              {lessonsCompleted}
-            </p>
-
-            <p className="mt-1 text-xs text-slate-400">
-              of {totalLessons} total lessons
+            <p className="mt-1 text-3xl font-extrabold text-[#071a2f]">
+              3
             </p>
 
           </div>
+
 
           {/* Tests */}
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          <div className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg">
 
-            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-green-50 text-green-600">
-              <FileText size={22} />
+            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0b5fa5] transition group-hover:bg-[#071a2f] group-hover:text-cyan-300">
+              <Target size={21} />
             </div>
 
-            <p className="text-sm text-slate-500">
+            <p className="text-sm font-medium text-slate-500">
               Tests Completed
             </p>
 
-            <p className="mt-2 text-3xl font-bold">
+            <p className="mt-1 text-3xl font-extrabold text-[#071a2f]">
               {testsCompleted}
             </p>
 
-            <p className="mt-1 text-xs text-slate-400">
-              practice attempts
-            </p>
-
           </div>
 
-          {/* Learning Time */}
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          {/* Learning time */}
 
-            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-purple-50 text-purple-600">
-              <Clock size={22} />
+          <div className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg">
+
+            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0b5fa5] transition group-hover:bg-[#071a2f] group-hover:text-cyan-300">
+              <Clock size={21} />
             </div>
 
-            <p className="text-sm text-slate-500">
+            <p className="text-sm font-medium text-slate-500">
               Learning Time
             </p>
 
-            <p className="mt-2 text-3xl font-bold">
+            <p className="mt-1 text-3xl font-extrabold text-[#071a2f]">
               {learningTime}
             </p>
 
-            <p className="mt-1 text-xs text-slate-400">
-              completed lesson duration
-            </p>
-
           </div>
 
-          {/* Average */}
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6">
+          {/* Score */}
 
-            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50 text-orange-500">
-              <Trophy size={22} />
+          <div className="group rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-1 hover:border-blue-200 hover:shadow-lg">
+
+            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0b5fa5] transition group-hover:bg-[#071a2f] group-hover:text-cyan-300">
+              <Trophy size={21} />
             </div>
 
-            <p className="text-sm text-slate-500">
+            <p className="text-sm font-medium text-slate-500">
               Average Score
             </p>
 
-            <p className="mt-2 text-3xl font-bold">
+            <p className="mt-1 text-3xl font-extrabold text-[#071a2f]">
               {averageScore}%
             </p>
 
-            <p className="mt-1 text-xs text-slate-400">
-              across completed tests
-            </p>
-
           </div>
 
         </section>
 
-        {/* =================================================
-            NEXT LESSON
-        ================================================= */}
 
-        <section className="mb-10 rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+        {/* =====================================================
+            PRACTICE
+        ===================================================== */}
 
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+        <section className="mb-10 grid gap-6 lg:grid-cols-[2fr_1fr]">
 
-            <div>
+          {/* Upcoming Test */}
 
-              <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
-                Up Next
-              </p>
+          <div className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
 
-              <h2 className="mt-2 text-xl font-bold">
-                {nextLesson
-                  ? nextLesson.title
-                  : "Course Completed 🎉"}
-              </h2>
+            <div className="mb-6 flex items-start justify-between">
 
-              <p className="mt-2 text-sm text-slate-500">
+              <div>
 
-                {nextLesson
-                  ? `${nextLesson.duration} • ${remainingLessons} lesson${
-                      remainingLessons ===
-                      1
-                        ? ""
-                        : "s"
-                    } remaining`
-                  : "You have completed every lesson in this course."}
+                <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[#0b5fa5]">
+                  <Target size={15} />
+                  Practice
+                </div>
 
-              </p>
+                <h2 className="text-2xl font-extrabold text-[#071a2f]">
+                  Upcoming Test
+                </h2>
+
+              </div>
+
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-[#0b5fa5]">
+                <FileText size={22} />
+              </div>
 
             </div>
 
-            <button
-              onClick={() => {
 
-                if (nextLesson) {
-                  navigate(
-                    `/lesson/${nextLesson.id}`
-                  );
-                } else {
-                  navigate("/progress");
-                }
+            <div className="flex flex-col justify-between gap-5 rounded-2xl border border-blue-100 bg-gradient-to-br from-[#f3f8fc] to-blue-50/50 p-6 sm:flex-row sm:items-center">
 
-              }}
-              className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
-            >
+              <div>
 
-              {nextLesson
-                ? "Continue Lesson"
-                : "View Progress"}
+                <div className="mb-2 inline-flex rounded-full bg-[#071a2f] px-3 py-1 text-xs font-semibold text-cyan-300">
+                  IMU CET
+                </div>
 
-              <ArrowRight size={18} />
+                <h3 className="text-lg font-bold text-[#071a2f]">
+                  Physics — Mechanics Mock Test
+                </h3>
 
-            </button>
+                <p className="mt-2 text-sm text-slate-500">
+                  20 questions · 30 minutes · Practice test
+                </p>
 
-          </div>
-
-        </section>
-
-        {/* =================================================
-            RECENT TESTS
-        ================================================= */}
-
-        <section className="mb-10">
-
-          <div className="mb-6 flex items-end justify-between">
-
-            <div>
-
-              <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
-                Performance
-              </p>
-
-              <h2 className="mt-2 text-2xl font-bold">
-                Recent Test Results
-              </h2>
-
-            </div>
-
-            <button
-              onClick={() =>
-                navigate(
-                  "/tests/imu-cet"
-                )
-              }
-              className="hidden items-center gap-2 font-medium text-blue-600 sm:flex"
-            >
-              Take Test
-              <ArrowRight size={18} />
-            </button>
-
-          </div>
-
-          {testHistory.length > 0 ? (
-
-            <div className="space-y-3">
-
-              {testHistory
-                .slice()
-                .reverse()
-                .slice(0, 3)
-                .map(
-                  (test, index) => (
-
-                    <div
-                      key={`${test.date}-${index}`}
-                      className="rounded-2xl border border-slate-200 bg-white p-5"
-                    >
-
-                      <div className="flex items-center gap-4">
-
-                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                          <FileText size={21} />
-                        </div>
-
-                        <div className="flex-1">
-
-                          <p className="font-semibold">
-                            {test.title}
-                          </p>
-
-                          <p className="mt-1 text-sm text-slate-400">
-                            {test.subject}
-                          </p>
-
-                        </div>
-
-                        <div className="text-right">
-
-                          <p
-                            className={`text-xl font-bold ${
-                              test.score >=
-                              70
-                                ? "text-green-600"
-                                : test.score >=
-                                  40
-                                ? "text-orange-500"
-                                : "text-red-500"
-                            }`}
-                          >
-                            {test.score}%
-                          </p>
-
-                          <p className="text-xs text-slate-400">
-                            {test.correctAnswers}/
-                            {
-                              test.totalQuestions
-                            }{" "}
-                            correct
-                          </p>
-
-                        </div>
-
-                      </div>
-
-                    </div>
-
-                  )
-                )}
-
-            </div>
-
-          ) : (
-
-            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
-
-              <p className="font-medium text-slate-700">
-                No tests completed yet.
-              </p>
+              </div>
 
               <button
-                onClick={() =>
-                  navigate(
-                    "/tests/imu-cet"
-                  )
-                }
-                className="mt-4 rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white hover:bg-blue-700"
+                onClick={() => navigate("/tests/imu-cet")}
+                className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#071a2f] px-6 py-3 font-semibold text-white transition hover:bg-[#0b3158]"
               >
-                Start Your First Test
+                Start Test
+                <ArrowRight size={18} />
               </button>
 
             </div>
 
-          )}
+          </div>
+
+
+          {/* Weekly Progress */}
+
+          <div className="rounded-2xl border border-slate-200 bg-white p-7 shadow-sm">
+
+            <div className="flex items-center justify-between">
+
+              <div>
+
+                <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#0b5fa5]">
+                  Your Goal
+                </p>
+
+                <h2 className="mt-2 text-2xl font-extrabold text-[#071a2f]">
+                  Weekly Progress
+                </h2>
+
+              </div>
+
+              <Waves className="text-blue-200" size={28} />
+
+            </div>
+
+
+            <div className="mt-6 flex justify-center">
+
+              <div
+                className="flex h-36 w-36 items-center justify-center rounded-full"
+                style={{
+                  background: `conic-gradient(
+                    #0b5fa5 ${courseProgress * 3.6}deg,
+                    #dbeafe ${courseProgress * 3.6}deg
+                  )`,
+                }}
+              >
+
+                <div className="flex h-28 w-28 flex-col items-center justify-center rounded-full bg-white">
+
+                  <p className="text-2xl font-extrabold text-[#071a2f]">
+                    {courseProgress}%
+                  </p>
+
+                  <p className="text-sm text-slate-400">
+                    Complete
+                  </p>
+
+                </div>
+
+              </div>
+
+            </div>
+
+
+            <button
+              onClick={() => navigate("/progress")}
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-3 font-semibold text-[#0b5fa5] transition hover:border-blue-200 hover:bg-blue-50"
+            >
+              View Progress
+              <ArrowRight size={17} />
+            </button>
+
+          </div>
 
         </section>
 
-        {/* =================================================
+
+        {/* =====================================================
             RECOMMENDED COURSES
-        ================================================= */}
+        ===================================================== */}
 
         <section>
 
@@ -968,21 +719,20 @@ export default function Dashboard() {
 
             <div>
 
-              <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
+              <div className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.14em] text-[#0b5fa5]">
+                <Compass size={15} />
                 Explore
-              </p>
+              </div>
 
-              <h2 className="mt-2 text-2xl font-bold">
+              <h2 className="text-2xl font-extrabold text-[#071a2f]">
                 Recommended for you
               </h2>
 
             </div>
 
             <button
-              onClick={() =>
-                navigate("/courses")
-              }
-              className="hidden items-center gap-2 font-medium text-blue-600 sm:flex"
+              onClick={() => navigate("/courses")}
+              className="hidden items-center gap-2 font-semibold text-[#0b5fa5] transition hover:text-[#071a2f] sm:flex"
             >
               View all
               <ArrowRight size={18} />
@@ -990,32 +740,57 @@ export default function Dashboard() {
 
           </div>
 
+
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 
-            {courses.map(
-              (course) => (
+            {courses.map((course) => {
 
+              const CourseIcon = course.icon;
+
+              return (
                 <button
                   key={course.id}
                   onClick={() =>
-                    navigate(
-                      `/courses/${course.id}`
-                    )
+                    navigate(`/courses/${course.id}`)
                   }
-                  className="group overflow-hidden rounded-2xl border border-slate-200 bg-white text-left transition hover:-translate-y-1 hover:shadow-lg"
+                  className="group overflow-hidden rounded-2xl border border-slate-200 bg-white text-left shadow-sm transition hover:-translate-y-1 hover:border-blue-200 hover:shadow-xl"
                 >
 
-                  <div className="relative h-40 bg-gradient-to-br from-blue-950 to-blue-800">
+                  {/* Course visual */}
 
-                    <div className="absolute bottom-5 left-5 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-blue-100 backdrop-blur">
+                  <div className="relative h-44 overflow-hidden bg-[#071a2f]">
+
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#0b3158] via-[#071a2f] to-[#04111f]" />
+
+                    {/* Decorative circles */}
+
+                    <div className="absolute -right-12 -top-16 h-48 w-48 rounded-full border border-cyan-300/10" />
+
+                    <div className="absolute -right-6 -top-10 h-36 w-36 rounded-full border border-cyan-300/10" />
+
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_30%,rgba(56,189,248,0.12),transparent_35%)]" />
+
+                    <div className="relative flex h-full items-center justify-center">
+
+                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-cyan-300/20 bg-white/10 text-cyan-300 backdrop-blur">
+                        <CourseIcon size={31} strokeWidth={1.5} />
+                      </div>
+
+                    </div>
+
+
+                    <div className="absolute bottom-4 left-5 rounded-full border border-white/10 bg-white/10 px-3.5 py-1.5 text-xs font-bold text-cyan-100 backdrop-blur">
                       {course.category}
                     </div>
 
                   </div>
 
+
+                  {/* Course content */}
+
                   <div className="p-6">
 
-                    <h3 className="text-xl font-bold group-hover:text-blue-600">
+                    <h3 className="text-xl font-extrabold text-[#071a2f] transition group-hover:text-[#0b5fa5]">
                       {course.title}
                     </h3>
 
@@ -1025,13 +800,16 @@ export default function Dashboard() {
 
                     <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-5">
 
-                      <span className="text-sm text-slate-400">
-                        {course.lessons} lessons
+                      <span className="text-sm font-medium text-slate-400">
+                        {course.lessons}
                       </span>
 
-                      <span className="flex items-center gap-2 font-medium text-blue-600">
+                      <span className="flex items-center gap-2 font-semibold text-[#0b5fa5]">
                         Explore
-                        <ArrowRight size={17} />
+                        <ArrowRight
+                          size={17}
+                          className="transition-transform group-hover:translate-x-1"
+                        />
                       </span>
 
                     </div>
@@ -1039,137 +817,56 @@ export default function Dashboard() {
                   </div>
 
                 </button>
-
-              )
-            )}
-
-          </div>
-
-        </section>
-
-        {/* =================================================
-            SUPPORT
-        ================================================= */}
-
-        <section className="mt-10 overflow-hidden rounded-2xl bg-slate-950 p-7 text-white sm:p-9">
-
-          <div className="flex flex-col gap-6">
-
-            <div className="flex flex-col gap-6 sm:flex-row sm:items-center sm:justify-between">
-
-              <div>
-
-                <div className="flex items-center gap-2 text-blue-400">
-
-                  <Headphones size={19} />
-
-                  <p className="text-sm font-semibold uppercase tracking-wide">
-                    Support
-                  </p>
-
-                </div>
-
-                <h2 className="mt-2 text-2xl font-bold">
-                  Need help with your preparation?
-                </h2>
-
-                <p className="mt-2 max-w-xl text-sm leading-6 text-slate-400">
-                  Contact NavPath Academy support for
-                  questions about courses, tests or
-                  your learning progress.
-                </p>
-
-              </div>
-
-              <button
-                onClick={() =>
-                  navigate("/support")
-                }
-                className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 font-semibold text-slate-950 transition hover:bg-slate-100"
-              >
-                Support / Contact
-                <ArrowRight size={18} />
-              </button>
-
-            </div>
-
-            {/* Support Requests */}
-
-            <div className="border-t border-slate-800 pt-6">
-
-              <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-
-                <div>
-
-                  <div className="flex items-center gap-2 text-slate-300">
-
-                    <MessageSquare size={19} />
-
-                    <p className="text-sm font-semibold">
-                      Support Requests
-                    </p>
-
-                  </div>
-
-                  <p className="mt-2 text-sm leading-6 text-slate-500">
-                    View messages submitted through
-                    the support form.
-                  </p>
-
-                </div>
-
-                <button
-                  onClick={() =>
-                    navigate(
-                      "/support-requests"
-                    )
-                  }
-                  className="flex shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-900 px-6 py-3.5 font-semibold text-white transition hover:bg-slate-800"
-                >
-                  View Support Requests
-                  <ArrowRight size={18} />
-                </button>
-
-              </div>
-
-            </div>
+              );
+            })}
 
           </div>
 
         </section>
+
+
+        {/* Mobile View All */}
+
+        <button
+          onClick={() => navigate("/courses")}
+          className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 font-semibold text-[#0b5fa5] sm:hidden"
+        >
+          View all courses
+          <ArrowRight size={18} />
+        </button>
 
       </main>
 
-      {/* =================================================
-          FOOTER
-      ================================================= */}
 
-      <footer className="mt-16 border-t border-slate-200 bg-white">
+      {/* =====================================================
+          FOOTER BRAND STRIP
+      ===================================================== */}
 
-        <div className="mx-auto max-w-7xl px-6 py-8">
+      <footer className="mt-12 border-t border-slate-200 bg-[#071a2f]">
 
-          <div className="flex flex-col gap-2 text-sm text-slate-400 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-5 py-7 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
 
-            <p>
-              © 2026 NavPath Academy. All
-              rights reserved.
-            </p>
+          <div className="flex items-center gap-3">
 
-            <p>
-              Learn. Prepare. Navigate your
-              future.
-            </p>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white/10 text-cyan-300">
+              <Compass size={20} />
+            </div>
 
-            <button
-              onClick={() =>
-                navigate("/support")
-              }
-              className="text-left transition hover:text-blue-600 sm:text-right"
-            >
-              Support & Contact
-            </button>
+            <div>
+              <p className="text-sm font-bold tracking-wider text-white">
+                NAVPATH ACADEMY
+              </p>
+
+              <p className="text-xs text-slate-400">
+                Navigate your future.
+              </p>
+            </div>
 
           </div>
+
+          <p className="text-xs text-slate-500">
+            © 2026 NavPath Academy. All rights reserved.
+          </p>
 
         </div>
 
@@ -1178,3 +875,5 @@ export default function Dashboard() {
     </div>
   );
 }
+
+export default Dashboard;
