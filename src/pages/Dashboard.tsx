@@ -4,7 +4,6 @@ import {
   Bell,
   BookOpen,
   Clock,
-  Flame,
   Target,
   Trophy,
   FileText,
@@ -13,6 +12,10 @@ import {
   Headphones,
   Anchor,
   Ship,
+  Compass,
+  Navigation,
+  Waves,
+  GraduationCap,
 } from "lucide-react";
 
 type TestResult = {
@@ -30,9 +33,6 @@ type NavPathUser = {
   isLoggedIn?: boolean;
 };
 
-/*
- * Get logged-in student
- */
 function getCurrentUser(): NavPathUser | null {
   try {
     const savedUser = localStorage.getItem("navpath-user");
@@ -53,9 +53,6 @@ function getCurrentUser(): NavPathUser | null {
   }
 }
 
-/*
- * Get completed lesson IDs
- */
 function getCompletedLessons(): string[] {
   try {
     const saved = localStorage.getItem(
@@ -74,9 +71,6 @@ function getCompletedLessons(): string[] {
   }
 }
 
-/*
- * Get test history
- */
 function getTestHistory(): TestResult[] {
   try {
     const saved = localStorage.getItem("testHistory");
@@ -105,9 +99,6 @@ function Dashboard() {
   const [user, setUser] =
     useState<NavPathUser | null>(null);
 
-  /*
-   * Load dashboard data
-   */
   const loadDashboardData = () => {
     setCompletedLessons(getCompletedLessons());
     setTestHistory(getTestHistory());
@@ -117,29 +108,16 @@ function Dashboard() {
   useEffect(() => {
     loadDashboardData();
 
-    /*
-     * Update dashboard if localStorage changes
-     */
     const handleStorage = () => {
       loadDashboardData();
     };
 
-    window.addEventListener(
-      "storage",
-      handleStorage
-    );
-
-    /*
-     * Refresh when returning to dashboard
-     */
     const handleFocus = () => {
       loadDashboardData();
     };
 
-    window.addEventListener(
-      "focus",
-      handleFocus
-    );
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("focus", handleFocus);
 
     return () => {
       window.removeEventListener(
@@ -156,15 +134,13 @@ function Dashboard() {
 
   /*
    * ============================
-   * STUDENT NAME
+   * STUDENT
    * ============================
    */
 
   const studentName =
     user?.name?.trim() ||
-    user?.email
-      ?.split("@")[0]
-      ?.trim() ||
+    user?.email?.split("@")[0]?.trim() ||
     "Student";
 
   const firstName =
@@ -175,7 +151,7 @@ function Dashboard() {
 
   /*
    * ============================
-   * REAL PROGRESS DATA
+   * PROGRESS
    * ============================
    */
 
@@ -222,7 +198,7 @@ function Dashboard() {
 
   /*
    * ============================
-   * COURSE DATA
+   * COURSES
    * ============================
    */
 
@@ -234,6 +210,9 @@ function Dashboard() {
       description:
         "Build a strong foundation across every major subject.",
       lessons: "150+ lessons",
+      icon: GraduationCap,
+      image:
+        "https://images.unsplash.com/photo-1552207802-77bcb0d13122?auto=format&fit=crop&fm=jpg&q=80&w=1200",
     },
     {
       id: "dns",
@@ -242,6 +221,9 @@ function Dashboard() {
       description:
         "Prepare for entrance exams and your maritime journey.",
       lessons: "80+ lessons",
+      icon: Navigation,
+      image:
+        "https://images.unsplash.com/photo-1552207802-77bcb0d13122?auto=format&fit=crop&fm=jpg&q=80&w=1200",
     },
     {
       id: "career",
@@ -250,32 +232,39 @@ function Dashboard() {
       description:
         "Interview preparation and career guidance.",
       lessons: "40+ lessons",
+      icon: Compass,
+      image:
+        "https://images.unsplash.com/photo-1552207802-77bcb0d13122?auto=format&fit=crop&fm=jpg&q=80&w=1200",
     },
   ];
 
   return (
     <div className="min-h-screen bg-[#eaf6fb] text-slate-950">
 
-      {/* ================= HEADER ================= */}
+      {/* =========================================
+          HEADER
+      ========================================= */}
 
-      <header className="border-b border-slate-200 bg-white">
+      <header className="border-b border-blue-100 bg-white">
         <div className="mx-auto flex min-h-20 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
 
           {/* Logo */}
 
           <button
             type="button"
-            onClick={() => navigate("/dashboard")}
+            onClick={() =>
+              navigate("/dashboard")
+            }
             className="flex items-center gap-3"
           >
-            <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-[#0b1f3a] via-[#0b3d66] to-blue-600 text-white shadow-lg sm:h-12 sm:w-12">
+            <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-[#061b32] via-[#0a4268] to-[#087ea4] text-white shadow-lg sm:h-12 sm:w-12">
 
               <Anchor
-                size={22}
-                strokeWidth={2.5}
+                size={23}
+                strokeWidth={2.4}
               />
 
-              <div className="absolute bottom-0 left-0 right-0 h-1 bg-blue-400" />
+              <div className="absolute bottom-0 left-0 right-0 h-1 bg-cyan-300" />
             </div>
 
             <div className="text-left">
@@ -293,19 +282,16 @@ function Dashboard() {
 
           <div className="flex items-center gap-1 sm:gap-3">
 
-            {/* Search */}
-
             <button
               type="button"
-              onClick={() => navigate("/search")}
+              onClick={() =>
+                navigate("/search")
+              }
               className="rounded-full p-2.5 text-slate-500 transition hover:bg-blue-50 hover:text-blue-600"
               title="Search courses"
-              aria-label="Search courses"
             >
               <Search size={21} />
             </button>
-
-            {/* Notifications */}
 
             <button
               type="button"
@@ -314,7 +300,6 @@ function Dashboard() {
               }
               className="relative rounded-full p-2.5 text-slate-500 transition hover:bg-blue-50 hover:text-blue-600"
               title="Notifications"
-              aria-label="Notifications"
             >
               <Bell size={21} />
 
@@ -323,14 +308,14 @@ function Dashboard() {
 
             <div className="mx-1 hidden h-8 w-px bg-slate-200 sm:block" />
 
-            {/* Profile */}
-
             <button
               type="button"
-              onClick={() => navigate("/profile")}
+              onClick={() =>
+                navigate("/profile")
+              }
               className="flex items-center gap-2 rounded-xl px-2 py-1.5 transition hover:bg-slate-50 sm:gap-3"
             >
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-blue-200 font-bold text-blue-700">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-100 to-cyan-100 font-bold text-blue-700">
                 {avatarLetter}
               </div>
 
@@ -348,10 +333,13 @@ function Dashboard() {
         </div>
       </header>
 
-      {/* ================= QUICK NAVIGATION ================= */}
+      {/* =========================================
+          NAVIGATION
+      ========================================= */}
 
-    <div className="border-b border-blue-100 bg-white">
+      <div className="border-b border-blue-100 bg-white">
         <div className="mx-auto max-w-7xl overflow-x-auto px-4 sm:px-6 lg:px-8">
+
           <nav className="flex min-w-max items-center gap-1 py-3 sm:gap-2">
 
             <button
@@ -359,7 +347,7 @@ function Dashboard() {
               onClick={() =>
                 navigate("/dashboard")
               }
-              className="rounded-lg bg-[#0b1f3a] px-4 py-2.5 text-sm font-semibold text-white shadow-sm sm:px-5"
+              className="rounded-lg bg-[#061b32] px-4 py-2.5 text-sm font-semibold text-white shadow-sm sm:px-5"
             >
               Dashboard
             </button>
@@ -414,8 +402,6 @@ function Dashboard() {
               Profile
             </button>
 
-            {/* SUPPORT */}
-
             <button
               type="button"
               onClick={() =>
@@ -430,14 +416,20 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* ================= MAIN ================= */}
+      {/* =========================================
+          MAIN
+      ========================================= */}
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-10 lg:px-8">
 
-        {/* ================= WELCOME ================= */}
+        {/* =========================================
+            WELCOME
+        ========================================= */}
 
         <section className="mb-8">
-          <p className="mb-2 text-sm font-semibold uppercase tracking-[0.12em] text-blue-600">
+
+          <p className="mb-2 flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.12em] text-[#087ea4]">
+            <Waves size={16} />
             Student Dashboard
           </p>
 
@@ -451,59 +443,83 @@ function Dashboard() {
           </p>
         </section>
 
-        {/* ================= CONTINUE LEARNING ================= */}
+        {/* =========================================
+            HERO
+        ========================================= */}
 
-        <section className="relative mb-9 overflow-hidden rounded-2xl bg-gradient-to-br from-[#07182e] via-[#0b2948] to-[#0b5fa5] p-6 text-white shadow-xl sm:p-8">
+        <section className="relative mb-9 min-h-[390px] overflow-hidden rounded-3xl bg-[#061b32] shadow-xl">
 
-          {/* Maritime decoration */}
+          {/* Maritime image */}
 
-          <div className="pointer-events-none absolute -right-10 -top-10 opacity-10">
-            <Ship size={220} />
-          </div>
+          <img
+            src="https://images.unsplash.com/photo-1552207802-77bcb0d13122?auto=format&fit=crop&fm=jpg&q=80&w=1800"
+            alt="Cargo ship sailing across the ocean"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
 
-          <div className="pointer-events-none absolute bottom-0 left-0 right-0 h-20 opacity-10">
-            <div className="h-full bg-[radial-gradient(ellipse_at_center,white,transparent_65%)]" />
-          </div>
+          {/* Dark ocean overlay */}
 
-          <div className="relative flex flex-col justify-between gap-8 lg:flex-row lg:items-center">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#031426]/95 via-[#062844]/80 to-[#087ea4]/30" />
 
-            <div className="flex-1">
+          {/* Bottom ocean overlay */}
 
-              <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-blue-300/20 bg-blue-300/10 px-4 py-2 text-sm font-semibold text-blue-200">
-                <Flame size={16} />
-                Continue Learning
+          <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-[#031426]/80 to-transparent" />
+
+          {/* Decorative icons */}
+
+          <Anchor
+            className="absolute right-8 top-8 text-white/10"
+            size={150}
+          />
+
+          <Ship
+            className="absolute bottom-8 right-12 text-white/10"
+            size={100}
+          />
+
+          {/* Content */}
+
+          <div className="relative z-10 flex min-h-[390px] flex-col justify-center p-6 text-white sm:p-10 lg:max-w-3xl lg:p-12">
+
+            <div className="mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-cyan-200/20 bg-cyan-200/10 px-4 py-2 text-sm font-semibold text-cyan-100 backdrop-blur-sm">
+              <Anchor size={16} />
+              Continue Learning
+            </div>
+
+            <h2 className="text-3xl font-bold leading-tight sm:text-4xl">
+              IMU CET 2027
+              <span className="block text-cyan-300">
+                Complete Preparation
+              </span>
+            </h2>
+
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-blue-50/80 sm:text-base">
+              Physics, Chemistry, Mathematics, English
+              and aptitude preparation in one structured
+              learning path designed for maritime aspirants.
+            </p>
+
+            {/* Progress */}
+
+            <div className="mt-7 max-w-xl">
+
+              <div className="mb-2 flex items-center justify-between text-sm">
+                <span className="text-blue-100/70">
+                  Course progress
+                </span>
+
+                <span className="font-semibold text-white">
+                  {courseProgress}%
+                </span>
               </div>
 
-              <h2 className="text-2xl font-bold md:text-3xl">
-                IMU CET 2027 — Complete Preparation
-              </h2>
-
-              <p className="mt-3 max-w-2xl text-sm leading-7 text-blue-100/70 sm:text-base">
-                Physics, Chemistry, Mathematics, English
-                and aptitude preparation in one structured
-                learning path.
-              </p>
-
-              <div className="mt-7 max-w-xl">
-
-                <div className="mb-2 flex items-center justify-between text-sm">
-                  <span className="text-blue-100/70">
-                    Course progress
-                  </span>
-
-                  <span className="font-semibold text-white">
-                    {courseProgress}%
-                  </span>
-                </div>
-
-                <div className="h-2.5 overflow-hidden rounded-full bg-white/10">
-                  <div
-                    className="h-full rounded-full bg-blue-400 transition-all duration-500"
-                    style={{
-                      width: `${courseProgress}%`,
-                    }}
-                  />
-                </div>
+              <div className="h-2.5 overflow-hidden rounded-full bg-white/15">
+                <div
+                  className="h-full rounded-full bg-cyan-300 transition-all duration-500"
+                  style={{
+                    width: `${courseProgress}%`,
+                  }}
+                />
               </div>
             </div>
 
@@ -512,7 +528,7 @@ function Dashboard() {
               onClick={() =>
                 navigate("/learn/imu-cet")
               }
-              className="flex shrink-0 items-center justify-center gap-3 rounded-xl bg-white px-6 py-4 font-semibold text-[#07182e] shadow-lg transition hover:bg-blue-50 sm:px-7"
+              className="mt-7 flex w-fit items-center justify-center gap-3 rounded-xl bg-white px-6 py-4 font-semibold text-[#061b32] shadow-lg transition hover:bg-cyan-50"
             >
               <BookOpen size={20} />
 
@@ -523,13 +539,13 @@ function Dashboard() {
           </div>
         </section>
 
-        {/* ================= STATISTICS ================= */}
+        {/* =========================================
+            STATS
+        ========================================= */}
 
         <section className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
 
-          {/* Active Courses */}
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md sm:p-6">
             <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
               <BookOpen size={22} />
             </div>
@@ -543,10 +559,8 @@ function Dashboard() {
             </p>
           </div>
 
-          {/* Tests */}
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+          <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md sm:p-6">
+            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600">
               <Target size={22} />
             </div>
 
@@ -559,10 +573,8 @@ function Dashboard() {
             </p>
           </div>
 
-          {/* Learning Time */}
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+          <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md sm:p-6">
+            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-sky-50 text-sky-600">
               <Clock size={22} />
             </div>
 
@@ -575,10 +587,8 @@ function Dashboard() {
             </p>
           </div>
 
-          {/* Average Score */}
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+          <div className="rounded-2xl border border-blue-100 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-md sm:p-6">
+            <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600">
               <Trophy size={22} />
             </div>
 
@@ -592,18 +602,20 @@ function Dashboard() {
           </div>
         </section>
 
-        {/* ================= PRACTICE ================= */}
+        {/* =========================================
+            PRACTICE
+        ========================================= */}
 
         <section className="mb-10 grid gap-6 lg:grid-cols-[2fr_1fr]">
 
-          {/* Upcoming Test */}
+          {/* Test */}
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
+          <div className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm sm:p-7">
 
             <div className="mb-6 flex items-start justify-between">
 
               <div>
-                <p className="text-sm font-semibold uppercase tracking-[0.1em] text-blue-600">
+                <p className="text-sm font-semibold uppercase tracking-[0.1em] text-[#087ea4]">
                   Practice
                 </p>
 
@@ -612,13 +624,12 @@ function Dashboard() {
                 </h2>
               </div>
 
-              <FileText
-                className="text-slate-300"
-                size={28}
-              />
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                <FileText size={23} />
+              </div>
             </div>
 
-            <div className="flex flex-col justify-between gap-5 rounded-xl bg-slate-50 p-5 sm:flex-row sm:items-center sm:p-6">
+            <div className="flex flex-col justify-between gap-5 rounded-xl bg-[#f0f9fc] p-5 sm:flex-row sm:items-center sm:p-6">
 
               <div>
                 <h3 className="text-lg font-semibold">
@@ -636,7 +647,7 @@ function Dashboard() {
                 onClick={() =>
                   navigate("/tests/imu-cet")
                 }
-                className="flex items-center justify-center gap-2 rounded-xl bg-[#0b1f3a] px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
+                className="flex items-center justify-center gap-2 rounded-xl bg-[#061b32] px-6 py-3 font-semibold text-white transition hover:bg-[#087ea4]"
               >
                 Start Test
                 <ArrowRight size={18} />
@@ -644,11 +655,11 @@ function Dashboard() {
             </div>
           </div>
 
-          {/* Weekly Progress */}
+          {/* Progress */}
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm sm:p-7">
+          <div className="rounded-2xl border border-blue-100 bg-white p-6 shadow-sm sm:p-7">
 
-            <p className="text-sm font-semibold uppercase tracking-[0.1em] text-blue-600">
+            <p className="text-sm font-semibold uppercase tracking-[0.1em] text-[#087ea4]">
               Your Goal
             </p>
 
@@ -662,7 +673,7 @@ function Dashboard() {
                 className="flex h-36 w-36 items-center justify-center rounded-full"
                 style={{
                   background: `conic-gradient(
-                    #0b5fa5 ${courseProgress * 3.6}deg,
+                    #087ea4 ${courseProgress * 3.6}deg,
                     #dbeafe ${courseProgress * 3.6}deg
                   )`,
                 }}
@@ -685,7 +696,7 @@ function Dashboard() {
               onClick={() =>
                 navigate("/progress")
               }
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-slate-200 px-4 py-3 font-medium text-blue-600 transition hover:bg-slate-50"
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-lg border border-blue-100 px-4 py-3 font-medium text-[#087ea4] transition hover:bg-blue-50"
             >
               View Progress
               <ArrowRight size={17} />
@@ -693,14 +704,17 @@ function Dashboard() {
           </div>
         </section>
 
-        {/* ================= RECOMMENDED COURSES ================= */}
+        {/* =========================================
+            RECOMMENDED COURSES
+        ========================================= */}
 
         <section>
 
           <div className="mb-6 flex items-end justify-between">
 
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.1em] text-blue-600">
+              <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.1em] text-[#087ea4]">
+                <Compass size={16} />
                 Explore
               </p>
 
@@ -714,7 +728,7 @@ function Dashboard() {
               onClick={() =>
                 navigate("/courses")
               }
-              className="hidden items-center gap-2 font-medium text-blue-600 transition hover:text-blue-700 sm:flex"
+              className="hidden items-center gap-2 font-medium text-[#087ea4] transition hover:text-blue-700 sm:flex"
             >
               View all
               <ArrowRight size={18} />
@@ -723,83 +737,144 @@ function Dashboard() {
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 
-            {courses.map((course) => (
-              <button
-                type="button"
-                key={course.id}
-                onClick={() =>
-                  navigate(
-                    `/courses/${course.id}`
-                  )
-                }
-                className="group overflow-hidden rounded-2xl border border-slate-200 bg-white text-left shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
-              >
+            {courses.map((course) => {
+              const CourseIcon = course.icon;
 
-                {/* Course banner */}
+              return (
+                <button
+                  type="button"
+                  key={course.id}
+                  onClick={() =>
+                    navigate(
+                      `/courses/${course.id}`
+                    )
+                  }
+                  className="group overflow-hidden rounded-2xl border border-blue-100 bg-white text-left shadow-sm transition hover:-translate-y-1 hover:shadow-xl"
+                >
 
-                <div className="relative h-40 overflow-hidden bg-gradient-to-br from-[#07182e] via-[#0b2948] to-[#0b5fa5]">
+                  {/* Image */}
 
-                  <Ship
-                    size={110}
-                    className="absolute -right-3 -top-4 text-white opacity-10"
-                  />
+                  <div className="relative h-44 overflow-hidden">
 
-                  <div className="absolute bottom-5 left-5 rounded-full border border-blue-300/20 bg-white/10 px-4 py-2 text-sm font-semibold text-blue-100 backdrop-blur">
-                    {course.category}
+                    <img
+                      src={course.image}
+                      alt={course.title}
+                      className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
+                    />
+
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#061b32]/90 via-[#061b32]/20 to-transparent" />
+
+                    <div className="absolute left-5 top-5 flex h-10 w-10 items-center justify-center rounded-xl border border-white/20 bg-white/15 text-white backdrop-blur">
+                      <CourseIcon size={20} />
+                    </div>
+
+                    <div className="absolute bottom-4 left-5 rounded-full border border-cyan-200/20 bg-[#061b32]/70 px-4 py-2 text-xs font-semibold text-cyan-100 backdrop-blur">
+                      {course.category}
+                    </div>
                   </div>
-                </div>
 
-                {/* Course information */}
+                  {/* Content */}
 
-                <div className="p-6">
+                  <div className="p-6">
 
-                  <h3 className="text-xl font-bold transition group-hover:text-blue-600">
-                    {course.title}
-                  </h3>
+                    <h3 className="text-xl font-bold transition group-hover:text-[#087ea4]">
+                      {course.title}
+                    </h3>
 
-                  <p className="mt-3 leading-6 text-slate-500">
-                    {course.description}
-                  </p>
+                    <p className="mt-3 leading-6 text-slate-500">
+                      {course.description}
+                    </p>
 
-                  <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-5">
+                    <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-5">
 
-                    <span className="text-sm text-slate-400">
-                      {course.lessons}
-                    </span>
+                      <span className="text-sm text-slate-400">
+                        {course.lessons}
+                      </span>
 
-                    <span className="flex items-center gap-2 font-medium text-blue-600">
-                      Explore
-                      <ArrowRight size={17} />
-                    </span>
+                      <span className="flex items-center gap-2 font-medium text-[#087ea4]">
+                        Explore
+                        <ArrowRight size={17} />
+                      </span>
+                    </div>
                   </div>
-                </div>
-              </button>
-            ))}
+                </button>
+              );
+            })}
           </div>
-
-          {/* Mobile View All */}
 
           <button
             type="button"
             onClick={() =>
               navigate("/courses")
             }
-            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 font-semibold text-blue-600 sm:hidden"
+            className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border border-blue-100 bg-white px-4 py-3 font-semibold text-[#087ea4] sm:hidden"
           >
             View all courses
             <ArrowRight size={18} />
           </button>
         </section>
 
-        {/* ================= SUPPORT CARD ================= */}
+        {/* =========================================
+            MARITIME CAREER SECTION
+        ========================================= */}
 
-        <section className="mt-10 overflow-hidden rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50 to-slate-50 p-6 sm:p-7">
+        <section className="relative mt-10 overflow-hidden rounded-2xl bg-[#061b32] p-7 text-white shadow-xl sm:p-9">
+
+          <div className="absolute -right-8 -top-8 opacity-10">
+            <Ship size={190} />
+          </div>
+
+          <div className="absolute -bottom-10 right-28 opacity-10">
+            <Waves size={180} />
+          </div>
+
+          <div className="relative z-10 flex flex-col justify-between gap-7 lg:flex-row lg:items-center">
+
+            <div className="max-w-2xl">
+
+              <div className="mb-4 flex items-center gap-2 text-sm font-semibold uppercase tracking-[0.12em] text-cyan-300">
+                <Anchor size={17} />
+                Your Maritime Journey
+              </div>
+
+              <h2 className="text-2xl font-bold sm:text-3xl">
+                Prepare today.
+                <span className="block text-cyan-300">
+                  Sail towards your future.
+                </span>
+              </h2>
+
+              <p className="mt-3 leading-7 text-blue-100/70">
+                Build the knowledge, confidence and skills
+                needed to take the next step towards a
+                successful maritime career.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                navigate("/courses")
+              }
+              className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-cyan-300 px-6 py-3.5 font-semibold text-[#061b32] transition hover:bg-white"
+            >
+              Explore Courses
+              <ArrowRight size={18} />
+            </button>
+          </div>
+        </section>
+
+        {/* =========================================
+            SUPPORT
+        ========================================= */}
+
+        <section className="mt-10 overflow-hidden rounded-2xl border border-blue-100 bg-white p-6 shadow-sm sm:p-7">
 
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
 
             <div className="flex items-start gap-4">
 
-              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white text-blue-600 shadow-sm">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-[#087ea4]">
                 <Headphones size={23} />
               </div>
 
@@ -820,7 +895,7 @@ function Dashboard() {
               onClick={() =>
                 navigate("/support")
               }
-              className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#0b1f3a] px-5 py-3 text-sm font-semibold text-white transition hover:bg-blue-700"
+              className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-[#061b32] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#087ea4]"
             >
               <Headphones size={17} />
               Contact Support
@@ -828,6 +903,7 @@ function Dashboard() {
             </button>
           </div>
         </section>
+
       </main>
     </div>
   );
