@@ -26,6 +26,12 @@ type TestResult = {
   date: string;
 };
 
+type NavPathUser = {
+  name?: string;
+  email?: string;
+  isLoggedIn?: boolean;
+};
+
 function getCompletedLessons(): string[] {
   try {
     const saved = localStorage.getItem(
@@ -68,6 +74,44 @@ function getTestHistory(): TestResult[] {
   }
 }
 
+function getUser(): NavPathUser {
+  try {
+    const saved =
+      localStorage.getItem("navpath-user");
+
+    if (!saved) {
+      return {};
+    }
+
+    const parsed = JSON.parse(saved);
+
+    if (
+      !parsed ||
+      typeof parsed !== "object"
+    ) {
+      return {};
+    }
+
+    return parsed;
+  } catch {
+    return {};
+  }
+}
+
+function getGreeting(): string {
+  const hour = new Date().getHours();
+
+  if (hour < 12) {
+    return "Good morning";
+  }
+
+  if (hour < 17) {
+    return "Good afternoon";
+  }
+
+  return "Good evening";
+}
+
 export default function Dashboard() {
   const navigate = useNavigate();
 
@@ -77,6 +121,9 @@ export default function Dashboard() {
   const [testHistory, setTestHistory] =
     useState<TestResult[]>([]);
 
+  const [user, setUser] =
+    useState<NavPathUser>({});
+
   const loadProgress = () => {
     setCompletedLessons(
       getCompletedLessons()
@@ -85,6 +132,8 @@ export default function Dashboard() {
     setTestHistory(
       getTestHistory()
     );
+
+    setUser(getUser());
   };
 
   useEffect(() => {
@@ -141,6 +190,18 @@ export default function Dashboard() {
   }, []);
 
   /* ===================================================
+     USER
+  =================================================== */
+
+  const userName =
+    user.name?.trim() || "Student";
+
+  const userInitial =
+    userName.charAt(0).toUpperCase() || "S";
+
+  const greeting = getGreeting();
+
+  /* ===================================================
      REAL COURSE DATA
   =================================================== */
 
@@ -150,7 +211,7 @@ export default function Dashboard() {
   const imuLessons =
     imuCourse?.lessons || [];
 
-  const totalLessons =
+  const totalLessons: number =
     imuLessons.length;
 
   const lessonsCompleted =
@@ -161,16 +222,16 @@ export default function Dashboard() {
     ).length;
 
   const courseProgress =
-    totalLessons === 0
-      ? 0
-      : Math.min(
+    totalLessons > 0
+      ? Math.min(
           100,
           Math.round(
             (lessonsCompleted /
               totalLessons) *
               100
           )
-        );
+        )
+      : 0;
 
   const remainingLessons =
     Math.max(
@@ -361,12 +422,12 @@ export default function Dashboard() {
               className="ml-2 flex items-center gap-3 rounded-xl px-2 py-1 transition hover:bg-slate-50"
             >
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
-                A
+                {userInitial}
               </div>
 
               <div className="hidden text-left sm:block">
                 <p className="font-semibold">
-                  Aravind
+                  {userName}
                 </p>
 
                 <p className="text-sm text-slate-400">
@@ -469,13 +530,16 @@ export default function Dashboard() {
 
             <button
               onClick={() =>
-                navigate("/support-requests")
+                navigate(
+                  "/support-requests"
+                )
               }
               className="flex items-center gap-2 rounded-lg px-5 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-100 hover:text-blue-600"
             >
               <MessageSquare size={16} />
               Support Requests
             </button>
+
           </nav>
         </div>
       </div>
@@ -491,18 +555,20 @@ export default function Dashboard() {
         ================================================= */}
 
         <section className="mb-8">
+
           <p className="mb-2 text-sm font-semibold uppercase tracking-wide text-blue-600">
             Student Dashboard
           </p>
 
           <h1 className="text-3xl font-bold tracking-tight md:text-4xl">
-            Good evening, Aravind 👋
+            {greeting}, {userName} 👋
           </h1>
 
           <p className="mt-3 text-lg text-slate-500">
             Continue your preparation and
             stay on course for your goals.
           </p>
+
         </section>
 
         {/* =================================================
@@ -510,6 +576,7 @@ export default function Dashboard() {
         ================================================= */}
 
         <section className="mb-9 overflow-hidden rounded-2xl bg-slate-950 p-8 text-white shadow-xl">
+
           <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-center">
 
             <div className="flex-1">
@@ -536,6 +603,7 @@ export default function Dashboard() {
               <div className="mt-7 max-w-xl">
 
                 <div className="mb-2 flex items-center justify-between text-sm">
+
                   <span className="text-slate-400">
                     Course progress
                   </span>
@@ -543,16 +611,20 @@ export default function Dashboard() {
                   <span className="font-semibold">
                     {courseProgress}%
                   </span>
+
                 </div>
 
                 <div className="h-2.5 overflow-hidden rounded-full bg-slate-800">
+
                   <div
                     className="h-full rounded-full bg-blue-500 transition-all duration-500"
                     style={{
                       width: `${courseProgress}%`,
                     }}
                   />
+
                 </div>
+
               </div>
 
               {/* Course information */}
@@ -577,7 +649,9 @@ export default function Dashboard() {
 
                   {averageScore}% average
                 </span>
+
               </div>
+
             </div>
 
             {/* Continue button */}
@@ -594,6 +668,7 @@ export default function Dashboard() {
 
               <ArrowRight size={18} />
             </button>
+
           </div>
         </section>
 
@@ -622,6 +697,7 @@ export default function Dashboard() {
             <p className="mt-1 text-xs text-slate-400">
               of {totalLessons} total lessons
             </p>
+
           </div>
 
           {/* Tests */}
@@ -643,6 +719,7 @@ export default function Dashboard() {
             <p className="mt-1 text-xs text-slate-400">
               practice attempts
             </p>
+
           </div>
 
           {/* Learning Time */}
@@ -664,6 +741,7 @@ export default function Dashboard() {
             <p className="mt-1 text-xs text-slate-400">
               completed lesson duration
             </p>
+
           </div>
 
           {/* Average */}
@@ -685,7 +763,9 @@ export default function Dashboard() {
             <p className="mt-1 text-xs text-slate-400">
               across completed tests
             </p>
+
           </div>
+
         </section>
 
         {/* =================================================
@@ -697,6 +777,7 @@ export default function Dashboard() {
           <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
 
             <div>
+
               <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
                 Up Next
               </p>
@@ -708,18 +789,23 @@ export default function Dashboard() {
               </h2>
 
               <p className="mt-2 text-sm text-slate-500">
+
                 {nextLesson
                   ? `${nextLesson.duration} • ${remainingLessons} lesson${
-                      remainingLessons === 1
+                      remainingLessons ===
+                      1
                         ? ""
                         : "s"
                     } remaining`
                   : "You have completed every lesson in this course."}
+
               </p>
+
             </div>
 
             <button
               onClick={() => {
+
                 if (nextLesson) {
                   navigate(
                     `/lesson/${nextLesson.id}`
@@ -727,16 +813,21 @@ export default function Dashboard() {
                 } else {
                   navigate("/progress");
                 }
+
               }}
               className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3 font-semibold text-white transition hover:bg-blue-700"
             >
+
               {nextLesson
                 ? "Continue Lesson"
                 : "View Progress"}
 
               <ArrowRight size={18} />
+
             </button>
+
           </div>
+
         </section>
 
         {/* =================================================
@@ -748,6 +839,7 @@ export default function Dashboard() {
           <div className="mb-6 flex items-end justify-between">
 
             <div>
+
               <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
                 Performance
               </p>
@@ -755,6 +847,7 @@ export default function Dashboard() {
               <h2 className="mt-2 text-2xl font-bold">
                 Recent Test Results
               </h2>
+
             </div>
 
             <button
@@ -768,63 +861,80 @@ export default function Dashboard() {
               Take Test
               <ArrowRight size={18} />
             </button>
+
           </div>
 
           {testHistory.length > 0 ? (
+
             <div className="space-y-3">
 
               {testHistory
                 .slice()
                 .reverse()
                 .slice(0, 3)
-                .map((test, index) => (
-                  <div
-                    key={`${test.date}-${index}`}
-                    className="rounded-2xl border border-slate-200 bg-white p-5"
-                  >
+                .map(
+                  (test, index) => (
 
-                    <div className="flex items-center gap-4">
+                    <div
+                      key={`${test.date}-${index}`}
+                      className="rounded-2xl border border-slate-200 bg-white p-5"
+                    >
 
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                        <FileText size={21} />
+                      <div className="flex items-center gap-4">
+
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                          <FileText size={21} />
+                        </div>
+
+                        <div className="flex-1">
+
+                          <p className="font-semibold">
+                            {test.title}
+                          </p>
+
+                          <p className="mt-1 text-sm text-slate-400">
+                            {test.subject}
+                          </p>
+
+                        </div>
+
+                        <div className="text-right">
+
+                          <p
+                            className={`text-xl font-bold ${
+                              test.score >=
+                              70
+                                ? "text-green-600"
+                                : test.score >=
+                                  40
+                                ? "text-orange-500"
+                                : "text-red-500"
+                            }`}
+                          >
+                            {test.score}%
+                          </p>
+
+                          <p className="text-xs text-slate-400">
+                            {test.correctAnswers}/
+                            {
+                              test.totalQuestions
+                            }{" "}
+                            correct
+                          </p>
+
+                        </div>
+
                       </div>
 
-                      <div className="flex-1">
-
-                        <p className="font-semibold">
-                          {test.title}
-                        </p>
-
-                        <p className="mt-1 text-sm text-slate-400">
-                          {test.subject}
-                        </p>
-                      </div>
-
-                      <div className="text-right">
-
-                        <p
-                          className={`text-xl font-bold ${
-                            test.score >= 70
-                              ? "text-green-600"
-                              : test.score >= 40
-                              ? "text-orange-500"
-                              : "text-red-500"
-                          }`}
-                        >
-                          {test.score}%
-                        </p>
-
-                        <p className="text-xs text-slate-400">
-                          {test.correctAnswers}/
-                          {test.totalQuestions}{" "}
-                          correct
-                        </p>
-                      </div>
                     </div>
-                  </div>
-                ))}
+
+                  )
+                )}
+
             </div>
+
           ) : (
+
             <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center">
 
               <p className="font-medium text-slate-700">
@@ -841,8 +951,11 @@ export default function Dashboard() {
               >
                 Start Your First Test
               </button>
+
             </div>
+
           )}
+
         </section>
 
         {/* =================================================
@@ -854,6 +967,7 @@ export default function Dashboard() {
           <div className="mb-6 flex items-end justify-between">
 
             <div>
+
               <p className="text-sm font-semibold uppercase tracking-wide text-blue-600">
                 Explore
               </p>
@@ -861,6 +975,7 @@ export default function Dashboard() {
               <h2 className="mt-2 text-2xl font-bold">
                 Recommended for you
               </h2>
+
             </div>
 
             <button
@@ -872,53 +987,64 @@ export default function Dashboard() {
               View all
               <ArrowRight size={18} />
             </button>
+
           </div>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
 
-            {courses.map((course) => (
-              <button
-                key={course.id}
-                onClick={() =>
-                  navigate(
-                    `/courses/${course.id}`
-                  )
-                }
-                className="group overflow-hidden rounded-2xl border border-slate-200 bg-white text-left transition hover:-translate-y-1 hover:shadow-lg"
-              >
+            {courses.map(
+              (course) => (
 
-                <div className="relative h-40 bg-gradient-to-br from-blue-950 to-blue-800">
+                <button
+                  key={course.id}
+                  onClick={() =>
+                    navigate(
+                      `/courses/${course.id}`
+                    )
+                  }
+                  className="group overflow-hidden rounded-2xl border border-slate-200 bg-white text-left transition hover:-translate-y-1 hover:shadow-lg"
+                >
 
-                  <div className="absolute bottom-5 left-5 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-blue-100 backdrop-blur">
-                    {course.category}
+                  <div className="relative h-40 bg-gradient-to-br from-blue-950 to-blue-800">
+
+                    <div className="absolute bottom-5 left-5 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-blue-100 backdrop-blur">
+                      {course.category}
+                    </div>
+
                   </div>
-                </div>
 
-                <div className="p-6">
+                  <div className="p-6">
 
-                  <h3 className="text-xl font-bold group-hover:text-blue-600">
-                    {course.title}
-                  </h3>
+                    <h3 className="text-xl font-bold group-hover:text-blue-600">
+                      {course.title}
+                    </h3>
 
-                  <p className="mt-3 leading-6 text-slate-500">
-                    {course.description}
-                  </p>
+                    <p className="mt-3 leading-6 text-slate-500">
+                      {course.description}
+                    </p>
 
-                  <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-5">
+                    <div className="mt-6 flex items-center justify-between border-t border-slate-100 pt-5">
 
-                    <span className="text-sm text-slate-400">
-                      {course.lessons} lessons
-                    </span>
+                      <span className="text-sm text-slate-400">
+                        {course.lessons} lessons
+                      </span>
 
-                    <span className="flex items-center gap-2 font-medium text-blue-600">
-                      Explore
-                      <ArrowRight size={17} />
-                    </span>
+                      <span className="flex items-center gap-2 font-medium text-blue-600">
+                        Explore
+                        <ArrowRight size={17} />
+                      </span>
+
+                    </div>
+
                   </div>
-                </div>
-              </button>
-            ))}
+
+                </button>
+
+              )
+            )}
+
           </div>
+
         </section>
 
         {/* =================================================
@@ -940,6 +1066,7 @@ export default function Dashboard() {
                   <p className="text-sm font-semibold uppercase tracking-wide">
                     Support
                   </p>
+
                 </div>
 
                 <h2 className="mt-2 text-2xl font-bold">
@@ -951,6 +1078,7 @@ export default function Dashboard() {
                   questions about courses, tests or
                   your learning progress.
                 </p>
+
               </div>
 
               <button
@@ -962,6 +1090,7 @@ export default function Dashboard() {
                 Support / Contact
                 <ArrowRight size={18} />
               </button>
+
             </div>
 
             {/* Support Requests */}
@@ -979,12 +1108,14 @@ export default function Dashboard() {
                     <p className="text-sm font-semibold">
                       Support Requests
                     </p>
+
                   </div>
 
                   <p className="mt-2 text-sm leading-6 text-slate-500">
                     View messages submitted through
                     the support form.
                   </p>
+
                 </div>
 
                 <button
@@ -998,10 +1129,15 @@ export default function Dashboard() {
                   View Support Requests
                   <ArrowRight size={18} />
                 </button>
+
               </div>
+
             </div>
+
           </div>
+
         </section>
+
       </main>
 
       {/* =================================================
@@ -1032,9 +1168,13 @@ export default function Dashboard() {
             >
               Support & Contact
             </button>
+
           </div>
+
         </div>
+
       </footer>
+
     </div>
   );
 }
