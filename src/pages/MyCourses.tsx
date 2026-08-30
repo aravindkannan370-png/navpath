@@ -10,52 +10,7 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-type Course = {
-  id: number;
-  lessonIds: string[];
-  category: string;
-  title: string;
-  description: string;
-  lessons: number;
-  duration: string;
-  nextLesson: string;
-};
-
-const enrolledCourses: Course[] = [
-  {
-    id: 1,
-    lessonIds: ["1", "2", "3"],
-    category: "IMU CET",
-    title: "IMU CET 2027 — Complete Preparation",
-    description:
-      "Complete preparation for Physics, Chemistry, Mathematics and English.",
-    lessons: 150,
-    duration: "42 hours",
-    nextLesson: "Physics — Laws of Motion",
-  },
-  {
-    id: 3,
-    lessonIds: ["4"],
-    category: "DNS",
-    title: "DNS Preparation Program",
-    description:
-      "Structured preparation for DNS entrance examinations.",
-    lessons: 80,
-    duration: "24 hours",
-    nextLesson: "Mathematics — Algebra",
-  },
-  {
-    id: 4,
-    lessonIds: ["5"],
-    category: "CAREER",
-    title: "Merchant Navy Career Guide",
-    description:
-      "Career guidance, sponsorship information and interview preparation.",
-    lessons: 40,
-    duration: "12 hours",
-    nextLesson: "Merchant Navy Career Overview",
-  },
-];
+import { courses } from "../data/courses";
 
 function getCompletedLessons(): string[] {
   try {
@@ -73,6 +28,37 @@ function getCompletedLessons(): string[] {
   } catch {
     return [];
   }
+}
+
+function getTotalMinutes(courseId: string): number {
+  const course = courses.find(
+    (item) => item.id === courseId
+  );
+
+  if (!course) {
+    return 0;
+  }
+
+  return course.lessons.reduce((total, lesson) => {
+    const match = lesson.duration.match(/\d+/);
+
+    return total + (match ? Number(match[0]) : 0);
+  }, 0);
+}
+
+function formatDuration(minutes: number): string {
+  if (minutes < 60) {
+    return `${minutes} min`;
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const remainingMinutes = minutes % 60;
+
+  if (remainingMinutes === 0) {
+    return `${hours}h`;
+  }
+
+  return `${hours}h ${remainingMinutes}m`;
 }
 
 const MyCourses = () => {
@@ -111,35 +97,33 @@ const MyCourses = () => {
    * ============================
    */
 
-  const getCourseProgress = (course: Course) => {
-    const completed =
-      course.lessonIds.filter((id) =>
-        completedLessons.includes(id)
-      ).length;
+  const getCourseProgress = (courseId: string) => {
+    const course = courses.find(
+      (item) => item.id === courseId
+    );
 
-    /*
-     * The demo lesson IDs represent the lessons
-     * currently available in the application.
-     *
-     * We use the actual course lesson count for
-     * the progress calculation when possible.
-     */
-    const progressLessonCount =
-      course.lessonIds.length;
-
-    if (progressLessonCount === 0) {
+    if (!course || course.lessons.length === 0) {
       return {
         completed: 0,
+        total: 0,
         progress: 0,
       };
     }
 
+    const completed = course.lessons.filter(
+      (lesson) =>
+        completedLessons.includes(lesson.id)
+    ).length;
+
+    const total = course.lessons.length;
+
     const progress = Math.round(
-      (completed / progressLessonCount) * 100
+      (completed / total) * 100
     );
 
     return {
       completed,
+      total,
       progress: Math.min(100, progress),
     };
   };
@@ -153,20 +137,57 @@ const MyCourses = () => {
   const totalCompletedLessons =
     completedLessons.length;
 
-  const learningMinutes =
-    totalCompletedLessons * 25;
+  const learningMinutes = courses.reduce(
+    (total, course) => {
+      const completedForCourse =
+        course.lessons.filter((lesson) =>
+          completedLessons.includes(lesson.id)
+        );
 
-  const learningHours = Math.floor(
-    learningMinutes / 60
+      return (
+        total +
+        completedForCourse.reduce(
+          (courseTotal, lesson) => {
+            const match =
+              lesson.duration.match(/\d+/);
+
+            return (
+              courseTotal +
+              (match ? Number(match[0]) : 0)
+            );
+          },
+          0
+        )
+      );
+    },
+    0
   );
 
-  const remainingMinutes =
-    learningMinutes % 60;
-
   const learningTime =
-    learningHours > 0
-      ? `${learningHours}h ${remainingMinutes}m`
-      : `${remainingMinutes}m`;
+    formatDuration(learningMinutes);
+
+  /*
+   * ============================
+   * NEXT LESSON
+   * ============================
+   */
+
+  const getNextLesson = (courseId: string) => {
+    const course = courses.find(
+      (item) => item.id === courseId
+    );
+
+    if (!course) {
+      return null;
+    }
+
+    const nextLesson = course.lessons.find(
+      (lesson) =>
+        !completedLessons.includes(lesson.id)
+    );
+
+    return nextLesson ?? course.lessons[0] ?? null;
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-950">
@@ -175,7 +196,9 @@ const MyCourses = () => {
       <header className="sticky top-0 z-50 border-b border-slate-200 bg-white">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
           <button
-            onClick={() => navigate("/dashboard")}
+            onClick={() =>
+              navigate("/dashboard")
+            }
             className="flex items-center gap-3"
           >
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-lg font-bold text-white">
@@ -195,7 +218,9 @@ const MyCourses = () => {
 
           <div className="flex items-center gap-2">
             <button
-              onClick={() => navigate("/search")}
+              onClick={() =>
+                navigate("/search")
+              }
               className="rounded-full p-2.5 text-slate-500 transition hover:bg-slate-100 hover:text-blue-600"
               title="Search"
             >
@@ -203,7 +228,9 @@ const MyCourses = () => {
             </button>
 
             <button
-              onClick={() => navigate("/dashboard")}
+              onClick={() =>
+                navigate("/dashboard")
+              }
               className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:bg-slate-100 hover:text-blue-600"
             >
               <ArrowLeft size={17} />
@@ -250,7 +277,7 @@ const MyCourses = () => {
                 </p>
 
                 <p className="text-xl font-bold">
-                  {enrolledCourses.length}
+                  {courses.length}
                 </p>
               </div>
             </div>
@@ -300,9 +327,15 @@ const MyCourses = () => {
         {/* ================= COURSE LIST ================= */}
 
         <section className="space-y-6">
-          {enrolledCourses.map((course) => {
+          {courses.map((course) => {
             const courseProgress =
-              getCourseProgress(course);
+              getCourseProgress(course.id);
+
+            const nextLesson =
+              getNextLesson(course.id);
+
+            const totalMinutes =
+              getTotalMinutes(course.id);
 
             return (
               <article
@@ -342,12 +375,14 @@ const MyCourses = () => {
                         <div className="mt-5 flex flex-wrap gap-4 text-sm text-slate-500">
                           <span className="flex items-center gap-2">
                             <BookOpen size={16} />
-                            {course.lessons} lessons
+                            {course.lessons.length} lessons
                           </span>
 
                           <span className="flex items-center gap-2">
                             <Clock3 size={16} />
-                            {course.duration}
+                            {formatDuration(
+                              totalMinutes
+                            )}
                           </span>
                         </div>
                       </div>
@@ -394,13 +429,16 @@ const MyCourses = () => {
                       <div className="mt-2 flex items-center justify-between text-xs text-slate-400">
                         <span>
                           {courseProgress.completed} of{" "}
-                          {course.lessonIds.length} tracked
-                          lessons completed
+                          {courseProgress.total} lessons
+                          completed
                         </span>
 
                         <span>
-                          {course.lessonIds.length -
-                            courseProgress.completed}{" "}
+                          {Math.max(
+                            0,
+                            courseProgress.total -
+                              courseProgress.completed
+                          )}{" "}
                           remaining
                         </span>
                       </div>
@@ -415,7 +453,9 @@ const MyCourses = () => {
                         </p>
 
                         <p className="mt-1 text-sm font-semibold text-slate-800">
-                          {course.nextLesson}
+                          {nextLesson
+                            ? nextLesson.title
+                            : "Course completed"}
                         </p>
                       </div>
 
@@ -458,7 +498,9 @@ const MyCourses = () => {
             </div>
 
             <button
-              onClick={() => navigate("/courses")}
+              onClick={() =>
+                navigate("/courses")
+              }
               className="flex shrink-0 items-center justify-center gap-2 rounded-xl bg-white px-6 py-3.5 font-semibold text-slate-950 transition hover:bg-blue-50"
             >
               Browse Courses
