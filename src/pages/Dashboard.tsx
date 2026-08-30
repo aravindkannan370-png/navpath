@@ -1175,55 +1175,7 @@ function Dashboard() {
             FOOTER
         ========================================= */}
 
-        <footer className="mt-10 border-t border-blue-100 pt-6 pb-8">
-
-          <div className="flex flex-col gap-4 text-sm sm:flex-row sm:items-center sm:justify-between">
-
-            <div>
-              <p className="font-semibold text-slate-700">
-                © 2026 NavPath Academy
-              </p>
-
-              <p className="mt-1 text-xs text-slate-400">
-                Learn. Prepare. Sail towards your future.
-              </p>
-            </div>
-
-            <div className="flex flex-wrap items-center text-sm">
-
-              <button
-                type="button"
-                onClick={() =>
-                  navigate("/privacy-policy")
-                }
-                className="mr-8 text-slate-500 transition hover:text-[#087ea4]"
-              >
-                Privacy Policy
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  navigate("/terms")
-                }
-                className="mr-8 text-slate-500 transition hover:text-[#087ea4]"
-              >
-                Terms & Conditions
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  navigate("/support")
-                }
-                className="text-slate-500 transition hover:text-[#087ea4]"
-              >
-                Support
-              </button>
-
-            </div>
-          </div>
-        </footer>
+       
         {/* =========================================
     FOOTER
 ========================================= */}
