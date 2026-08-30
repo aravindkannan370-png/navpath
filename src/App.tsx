@@ -63,6 +63,10 @@ export default function App() {
         path="/enrollment/:courseId"
         element={<Enrollment />}
       />
+      <Route
+  path="/enroll/:courseId"
+  element={<Enrollment />}
+/>
 
       {/* My Courses */}
       <Route
