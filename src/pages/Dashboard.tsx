@@ -6,7 +6,8 @@ import {
   Clock,
   Target,
   Trophy,
-  FileText,
+ FileText,
+  ShieldCheck,
   ArrowRight,
   Search,
   Headphones,
@@ -902,7 +903,61 @@ function Dashboard() {
               <ArrowRight size={16} />
             </button>
           </div>
-        </section>
+                </section>
+
+        {/* =========================================
+            FOOTER
+        ========================================= */}
+
+        <footer className="mt-10 border-t border-blue-100 pt-6 pb-8">
+          <div className="flex flex-col gap-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+
+            <div>
+              <p className="font-semibold text-slate-700">
+                © 2026 NavPath Academy
+              </p>
+
+              <p className="mt-1 text-xs text-slate-400">
+                Learn. Prepare. Sail towards your future.
+              </p>
+            </div>
+
+         <div className="flex flex-wrap items-center gap-6 text-sm">
+
+  {/* Privacy Policy */}
+  <button
+    type="button"
+    onClick={() => navigate("/privacy-policy")}
+    className="flex items-center gap-2 text-slate-500 transition hover:text-[#087ea4]"
+  >
+    <ShieldCheck size={17} />
+    Privacy Policy
+  </button>
+
+  {/* Terms & Conditions */}
+  <button
+    type="button"
+    onClick={() => navigate("/terms")}
+    className="flex items-center gap-2 text-slate-500 transition hover:text-[#087ea4]"
+  >
+    <FileText size={17} />
+    Terms & Conditions
+  </button>
+
+  {/* Support */}
+  <button
+    type="button"
+    onClick={() => navigate("/support")}
+    className="flex items-center gap-2 text-slate-500 transition hover:text-[#087ea4]"
+  >
+    <Headphones size={17} />
+    Support
+  </button>
+
+</div>
+
+          </div>
+        </footer>
 
       </main>
     </div>
