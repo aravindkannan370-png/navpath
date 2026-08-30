@@ -254,7 +254,7 @@ function Dashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-950">
+    <div className="min-h-screen bg-[#eaf6fb] text-slate-950">
 
       {/* ================= HEADER ================= */}
 
@@ -350,7 +350,7 @@ function Dashboard() {
 
       {/* ================= QUICK NAVIGATION ================= */}
 
-      <div className="border-b border-slate-200 bg-white">
+    <div className="border-b border-blue-100 bg-white">
         <div className="mx-auto max-w-7xl overflow-x-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex min-w-max items-center gap-1 py-3 sm:gap-2">
 
