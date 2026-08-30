@@ -9,6 +9,7 @@ export type Course = {
   title: string;
   category: string;
   description: string;
+  price: number;
   lessons: Lesson[];
 };
 
@@ -19,6 +20,7 @@ export const courses: Course[] = [
     category: "IMU CET",
     description:
       "Complete preparation for Physics, Chemistry, Mathematics and English.",
+    price: 4999,
     lessons: [
       {
         id: "imu-physics-1",
@@ -79,6 +81,7 @@ export const courses: Course[] = [
     category: "DNS",
     description:
       "Structured preparation for DNS entrance examinations.",
+    price: 3499,
     lessons: [
       {
         id: "dns-1",
@@ -114,6 +117,7 @@ export const courses: Course[] = [
     category: "CAREER",
     description:
       "Career guidance, sponsorship information and interview preparation.",
+    price: 2999,
     lessons: [
       {
         id: "career-1",
@@ -139,6 +143,114 @@ export const courses: Course[] = [
         id: "career-5",
         title: "Career Roadmap",
         duration: "25 min",
+      },
+    ],
+  },
+
+  {
+    id: "imu-mock-tests",
+    title: "IMU CET Mock Test Series",
+    category: "MOCK TESTS",
+    description:
+      "Practice with structured IMU CET mock tests and improve your exam readiness.",
+    price: 999,
+    lessons: [
+      {
+        id: "mock-1",
+        title: "Physics Mock Test",
+        duration: "45 min",
+      },
+      {
+        id: "mock-2",
+        title: "Chemistry Mock Test",
+        duration: "45 min",
+      },
+      {
+        id: "mock-3",
+        title: "Mathematics Mock Test",
+        duration: "45 min",
+      },
+      {
+        id: "mock-4",
+        title: "English Mock Test",
+        duration: "30 min",
+      },
+      {
+        id: "mock-5",
+        title: "Full IMU CET Mock Test",
+        duration: "90 min",
+      },
+    ],
+  },
+
+  {
+    id: "maritime-english",
+    title: "Maritime English & Communication",
+    category: "MARITIME",
+    description:
+      "Improve English communication and vocabulary for maritime studies and careers.",
+    price: 1499,
+    lessons: [
+      {
+        id: "maritime-english-1",
+        title: "Maritime English Fundamentals",
+        duration: "25 min",
+      },
+      {
+        id: "maritime-english-2",
+        title: "Maritime Vocabulary",
+        duration: "30 min",
+      },
+      {
+        id: "maritime-english-3",
+        title: "Communication Skills",
+        duration: "35 min",
+      },
+      {
+        id: "maritime-english-4",
+        title: "Interview Communication",
+        duration: "30 min",
+      },
+      {
+        id: "maritime-english-5",
+        title: "Professional Maritime Communication",
+        duration: "35 min",
+      },
+    ],
+  },
+
+  {
+    id: "sponsorship-interview",
+    title: "Sponsorship Interview Preparation",
+    category: "CAREER",
+    description:
+      "Prepare for maritime company sponsorship interviews with structured practice.",
+    price: 1999,
+    lessons: [
+      {
+        id: "sponsor-1",
+        title: "Understanding Sponsorship Interviews",
+        duration: "25 min",
+      },
+      {
+        id: "sponsor-2",
+        title: "Common Interview Questions",
+        duration: "35 min",
+      },
+      {
+        id: "sponsor-3",
+        title: "Technical Interview Preparation",
+        duration: "40 min",
+      },
+      {
+        id: "sponsor-4",
+        title: "HR Interview Preparation",
+        duration: "30 min",
+      },
+      {
+        id: "sponsor-5",
+        title: "Mock Sponsorship Interview",
+        duration: "45 min",
       },
     ],
   },

@@ -6,54 +6,25 @@ import {
   Lock,
   ShieldCheck,
 } from "lucide-react";
+import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-const courses = [
-  {
-    id: 1,
-    title: "IMU CET 2027 — Complete Preparation",
-    category: "IMU CET",
-    price: "₹4,999",
-  },
-  {
-    id: 2,
-    title: "IMU CET Repeaters Program",
-    category: "IMU CET",
-    price: "₹3,999",
-  },
-  {
-    id: 3,
-    title: "DNS Preparation Program",
-    category: "DNS",
-    price: "₹3,499",
-  },
-  {
-    id: 4,
-    title: "Merchant Navy Career Program",
-    category: "Merchant Navy",
-    price: "₹2,999",
-  },
-  {
-    id: 5,
-    title: "IMU CET Mock Test Series",
-    category: "Mock Tests",
-    price: "₹999",
-  },
-  {
-    id: 6,
-    title: "Sponsorship Interview Preparation",
-    category: "Career",
-    price: "₹1,999",
-  },
-];
+import { courses } from "../data/courses";
+
 
 function Enrollment() {
   const navigate = useNavigate();
   const { courseId } = useParams();
 
   const course = courses.find(
-    (item) => item.id === Number(courseId)
+    (item) => item.id === courseId
   );
+
+  const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
+  const [processing, setProcessing] = useState(false);
 
   if (!course) {
     return (
@@ -74,9 +45,96 @@ function Enrollment() {
     );
   }
 
-  const numericPrice = Number(
-    course.price.replace(/[₹,]/g, "")
-  );
+ const price = course.price;
+
+  const handlePayment = () => {
+    setError("");
+
+    if (!fullName.trim()) {
+      setError("Please enter your full name.");
+      return;
+    }
+
+    if (!phone.trim()) {
+      setError("Please enter your phone number.");
+      return;
+    }
+
+    if (!email.trim()) {
+      setError("Please enter your email address.");
+      return;
+    }
+
+    if (!email.includes("@")) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    setProcessing(true);
+
+    // Demo payment processing
+    setTimeout(() => {
+      try {
+        const saved = localStorage.getItem(
+          "navpath_enrolled_courses"
+        );
+
+        let enrolledCourses: string[] = [];
+
+        if (saved) {
+          try {
+            const parsed = JSON.parse(saved);
+
+            if (Array.isArray(parsed)) {
+              enrolledCourses = parsed;
+            }
+          } catch {
+            enrolledCourses = [];
+          }
+        }
+
+        // Avoid duplicate enrollment
+        if (!enrolledCourses.includes(course.id)) {
+          enrolledCourses.push(course.id);
+        }
+
+        localStorage.setItem(
+          "navpath_enrolled_courses",
+          JSON.stringify(enrolledCourses)
+        );
+
+        // Save student information for the prototype
+        localStorage.setItem(
+          "navpath-student",
+          JSON.stringify({
+            fullName: fullName.trim(),
+            phone: phone.trim(),
+            email: email.trim(),
+          })
+        );
+
+        // Save the latest enrollment
+        localStorage.setItem(
+          "navpath-last-enrollment",
+          JSON.stringify({
+            courseId: course.id,
+            courseTitle: course.title,
+            amount: price,
+            enrolledAt: new Date().toISOString(),
+          })
+        );
+
+        setProcessing(false);
+
+        navigate("/my-courses");
+      } catch {
+        setProcessing(false);
+        setError(
+          "Something went wrong while completing enrollment. Please try again."
+        );
+      }
+    }, 1000);
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -84,7 +142,9 @@ function Enrollment() {
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
           <button
-            onClick={() => navigate(`/courses/${course.id}`)}
+            onClick={() =>
+              navigate(`/courses/${course.id}`)
+            }
             className="flex items-center gap-3"
           >
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-lg font-bold text-white">
@@ -92,7 +152,10 @@ function Enrollment() {
             </div>
 
             <div className="text-left">
-              <p className="font-bold tracking-wide">NAVPATH</p>
+              <p className="font-bold tracking-wide">
+                NAVPATH
+              </p>
+
               <p className="text-[10px] uppercase tracking-[0.25em] text-slate-400">
                 Academy
               </p>
@@ -109,7 +172,9 @@ function Enrollment() {
       <main className="mx-auto max-w-6xl px-6 py-10">
         {/* Back */}
         <button
-          onClick={() => navigate(`/courses/${course.id}`)}
+          onClick={() =>
+            navigate(`/courses/${course.id}`)
+          }
           className="mb-8 flex items-center gap-2 text-sm font-semibold text-slate-600 hover:text-blue-600"
         >
           <ArrowLeft size={17} />
@@ -126,7 +191,8 @@ function Enrollment() {
           </h1>
 
           <p className="mt-3 text-slate-500">
-            Review your course details and continue to secure payment.
+            Enter your details and continue to the
+            secure demo payment.
           </p>
         </div>
 
@@ -138,11 +204,12 @@ function Enrollment() {
             </h2>
 
             <p className="mt-2 text-sm text-slate-500">
-              Enter the details that will be associated with your
+              Enter the details associated with your
               NavPath Academy account.
             </p>
 
             <div className="mt-7 grid gap-5 sm:grid-cols-2">
+              {/* Full Name */}
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
                   Full Name
@@ -150,11 +217,16 @@ function Enrollment() {
 
                 <input
                   type="text"
+                  value={fullName}
+                  onChange={(event) =>
+                    setFullName(event.target.value)
+                  }
                   placeholder="Enter your full name"
                   className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
 
+              {/* Phone */}
               <div>
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
                   Phone Number
@@ -162,11 +234,16 @@ function Enrollment() {
 
                 <input
                   type="tel"
+                  value={phone}
+                  onChange={(event) =>
+                    setPhone(event.target.value)
+                  }
                   placeholder="+91 XXXXX XXXXX"
                   className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
 
+              {/* Email */}
               <div className="sm:col-span-2">
                 <label className="mb-2 block text-sm font-semibold text-slate-700">
                   Email Address
@@ -174,11 +251,22 @@ function Enrollment() {
 
                 <input
                   type="email"
+                  value={email}
+                  onChange={(event) =>
+                    setEmail(event.target.value)
+                  }
                   placeholder="you@example.com"
                   className="w-full rounded-xl border border-slate-200 px-4 py-3 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                 />
               </div>
             </div>
+
+            {/* Error */}
+            {error && (
+              <div className="mt-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                {error}
+              </div>
+            )}
 
             {/* Benefits */}
             <div className="mt-8 rounded-2xl bg-blue-50 p-5">
@@ -201,6 +289,7 @@ function Enrollment() {
                       size={17}
                       className="shrink-0 text-blue-600"
                     />
+
                     {item}
                   </div>
                 ))}
@@ -208,7 +297,7 @@ function Enrollment() {
             </div>
           </section>
 
-          {/* Order summary */}
+          {/* Order Summary */}
           <aside className="h-fit rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-wider text-blue-600">
               Order Summary
@@ -226,15 +315,23 @@ function Enrollment() {
 
             <div className="mt-6 space-y-4 border-b border-slate-100 pb-6">
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Course fee</span>
+                <span className="text-slate-500">
+                  Course fee
+                </span>
+
                 <span className="font-semibold">
-                  {course.price}
+                  ₹{price.toLocaleString("en-IN")}
                 </span>
               </div>
 
               <div className="flex justify-between text-sm">
-                <span className="text-slate-500">Platform fee</span>
-                <span className="font-semibold">₹0</span>
+                <span className="text-slate-500">
+                  Platform fee
+                </span>
+
+                <span className="font-semibold">
+                  ₹0
+                </span>
               </div>
             </div>
 
@@ -244,23 +341,22 @@ function Enrollment() {
               </span>
 
               <span className="text-2xl font-bold">
-                {course.price}
+                ₹{price.toLocaleString("en-IN")}
               </span>
             </div>
 
             <button
-              onClick={() => {
-                alert(
-                  `Payment demo initiated for ${course.title} — ₹${numericPrice.toLocaleString(
-                    "en-IN"
-                  )}`
-                );
-              }}
-              className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-4 font-semibold text-white transition hover:bg-blue-700"
+              onClick={handlePayment}
+              disabled={processing}
+              className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-4 font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
             >
               <CreditCard size={19} />
-              Proceed to Payment
-              <ArrowRight size={18} />
+
+              {processing
+                ? "Processing Payment..."
+                : "Proceed to Payment"}
+
+              {!processing && <ArrowRight size={18} />}
             </button>
 
             <div className="mt-5 flex items-start gap-3 rounded-xl bg-slate-50 p-4">
@@ -270,9 +366,10 @@ function Enrollment() {
               />
 
               <p className="text-xs leading-5 text-slate-500">
-                Your payment will be processed through a secure
-                payment gateway. This prototype does not process
-                real payments.
+                This is a demonstration payment flow.
+                No real payment is processed. After the
+                simulated payment, the course will be
+                added to your My Courses section.
               </p>
             </div>
           </aside>

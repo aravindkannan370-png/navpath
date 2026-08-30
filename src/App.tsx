@@ -3,6 +3,8 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Courses from "./pages/Courses";
+import CourseDetails from "./pages/CourseDetails";
+import Enrollment from "./pages/Enrollment";
 import MyCourses from "./pages/MyCourses";
 import Profile from "./pages/Profile";
 import Learn from "./pages/Learn";
@@ -50,11 +52,19 @@ export default function App() {
         element={<Courses />}
       />
 
+      {/* Course Details */}
       <Route
         path="/courses/:courseId"
-        element={<Learn />}
+        element={<CourseDetails />}
       />
 
+      {/* Course Enrollment / Purchase */}
+      <Route
+        path="/enrollment/:courseId"
+        element={<Enrollment />}
+      />
+
+      {/* My Courses */}
       <Route
         path="/my-courses"
         element={<MyCourses />}
@@ -119,14 +129,21 @@ export default function App() {
         path="/support-requests"
         element={<SupportRequests />}
       />
-<Route
-  path="/privacy-policy"
-  element={<PrivacyPolicy />}
-/>
-<Route
-  path="/terms"
-  element={<Terms />}
-/>
+
+      {/* =========================
+          Legal
+      ========================== */}
+
+      <Route
+        path="/privacy-policy"
+        element={<PrivacyPolicy />}
+      />
+
+      <Route
+        path="/terms"
+        element={<Terms />}
+      />
+
       {/* =========================
           Unknown Route
       ========================== */}
