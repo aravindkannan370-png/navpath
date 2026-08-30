@@ -210,6 +210,46 @@ export default function Support() {
               <h2 className="mt-6 text-2xl font-bold">
                 How can we help?
               </h2>
+              {/* Contact Information */}
+<div className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+  <h3 className="text-lg font-semibold text-slate-900">
+    Contact Information
+  </h3>
+
+  <div className="mt-5 space-y-4">
+
+    <div>
+      <p className="text-sm font-medium text-slate-500">
+        ✉ Support Email
+      </p>
+      <p className="mt-1 text-slate-800">
+        info@navpathacademy.com
+      </p>
+    </div>
+
+    <div>
+      <p className="text-sm font-medium text-slate-500">
+        ☎ Contact Number
+      </p>
+      <p className="mt-1 text-slate-800">
+        +91 XXXXX XXXXX
+      </p>
+    </div>
+
+    <div>
+      <p className="text-sm font-medium text-slate-500">
+        Support Hours
+      </p>
+      <p className="mt-1 text-slate-800">
+        Monday – Saturday
+      </p>
+      <p className="text-sm text-slate-500">
+        9:00 AM – 6:00 PM
+      </p>
+    </div>
+
+  </div>
+</div>
 
               <p className="mt-3 leading-7 text-slate-400">
                 Contact NavPath Academy
